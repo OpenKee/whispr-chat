@@ -323,7 +323,11 @@ export default {
       clearSession()
       searchTimer = setInterval(() => {
         searchingSeconds.value++
-        if (searchingSeconds.value > 120) { stopSearching() }
+        if (searchingSeconds.value > 120) {
+          stopSearching()
+          clearSession()
+          router.push('/')
+        }
       }, 1000)
       connect()
       setTimeout(sendJoin, 300)
@@ -590,6 +594,7 @@ export default {
 .message {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   max-width: 75%;
   animation: slideUp 0.2s ease;
 }

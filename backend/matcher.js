@@ -6,7 +6,7 @@ const generateRoomId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8)
 // Nickname components
 const adjectives = [
   '快乐的', '安静的', '神秘的', '勇敢的', '温柔的', '酷酷的',
-  '懒懒的', '闪闪的', '萌萌的', '酷酷的', '酷酷的', '神秘的',
+  '懒懒的', '闪闪的', '萌萌的', '机智的', '优雅的', '呆萌的',
   'Quick', 'Silent', 'Brave', 'Calm', 'Wild', 'Cool',
   'Lucky', 'Happy', 'Sleepy', 'Clever', 'Gentle', 'Bold'
 ];
@@ -104,7 +104,7 @@ class Matcher {
         const partnerWs = this.waitingQueue.shift();
         const partnerInfo = this.clients.get(partnerWs);
 
-        if (partnerInfo && partnerInfo.ws.readyState === 1) {
+        if (partnerInfo && partnerInfo.ws.readyState === 1 && !partnerInfo.partner) {
           this.pair(clientInfo, partnerInfo);
           return { matched: true, ...clientInfo };
         }
