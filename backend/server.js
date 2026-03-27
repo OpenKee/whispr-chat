@@ -95,6 +95,7 @@ async function start() {
           switch (data.type) {
             case 'join': {
               const city = await getCity(ip);
+              console.log(`[join] ip=${ip} city=${city}`);
               const result = matcher.addClient(ws, data.clientId, data.gender, data.age, city);
               if (result.matched) {
                 console.log(`[match] ${result.nickname} (${city})`);
