@@ -1,7 +1,19 @@
 <template>
   <div class="chat-page">
+    <!-- Reconnecting -->
+    <div v-if="state === 'reconnecting'" class="searching">
+      <div class="searching-content">
+        <div class="spinner">
+          <div class="dot dot1"></div>
+          <div class="dot dot2"></div>
+          <div class="dot dot3"></div>
+        </div>
+        <h2>正在重新连接...</h2>
+      </div>
+    </div>
+
     <!-- Searching -->
-    <div v-if="state === 'searching'" class="searching">
+    <div v-else-if="state === 'searching'" class="searching">
       <div class="searching-content">
         <div class="spinner">
           <div class="dot dot1"></div>
@@ -74,7 +86,7 @@
       </div>
     </div>
 
-    <!-- Idle (initial / after cancel) -->
+    <!-- Idle -->
     <div v-else class="idle-screen">
       <div class="idle-content">
         <router-link to="/" class="back-link">← 返回</router-link>
@@ -87,7 +99,28 @@
 </template>
 
 <script>
-import { ref, nextTick, onUnmounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+
+const SESSION_KEY = 'whispr_session'
+
+function saveSession(data) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(data))
+}
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY)
+    if (!raw) return null
+    const s = JSON.parse(raw)
+    // Session valid for 30 seconds after disconnect
+    if (Date.now() - (s.savedAt || 0) > 30000) return null
+    return s
+  } catch { return null }
+}
+
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY)
+}
 
 export default {
   name: 'Chat',
@@ -135,7 +168,15 @@ export default {
       ws.onclose = () => {
         console.log('[ws] disconnected')
         if (state.value === 'chatting') {
-          state.value = 'left'
+          // Save session for reconnection
+          saveSession({
+            nickname: nickname.value,
+            partnerNickname: partnerNickname.value,
+            roomId: roomId.value,
+            savedAt: Date.now()
+          })
+          state.value = 'reconnecting'
+          autoReconnect()
         } else if (state.value === 'searching') {
           stopSearching()
           state.value = 'idle'
@@ -153,9 +194,15 @@ export default {
           nickname.value = data.nickname
           partnerNickname.value = data.partnerNickname
           roomId.value = data.roomId
-          messages.value = []
           state.value = 'chatting'
           stopSearching()
+          // Save session
+          saveSession({
+            nickname: data.nickname,
+            partnerNickname: data.partnerNickname,
+            roomId: data.roomId,
+            savedAt: Date.now()
+          })
           nextTick(() => {
             inputEl.value?.focus()
           })
@@ -176,6 +223,7 @@ export default {
           break
 
         case 'partner_left':
+          clearSession()
           state.value = 'left'
           break
 
@@ -184,6 +232,7 @@ export default {
 
         case 'timeout':
           stopSearching()
+          clearSession()
           state.value = 'idle'
           break
 
@@ -203,10 +252,17 @@ export default {
       }
     }
 
+    function sendJoin() {
+      if (ws?.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'join', clientId }))
+      }
+    }
+
     function startChat() {
       state.value = 'searching'
       searchingSeconds.value = 0
       messages.value = []
+      clearSession()
 
       searchTimer = setInterval(() => {
         searchingSeconds.value++
@@ -217,11 +273,19 @@ export default {
       }, 1000)
 
       connect()
+      setTimeout(sendJoin, 300)
+    }
+
+    function autoReconnect() {
+      connect()
+      setTimeout(sendJoin, 300)
+      // Timeout: if not matched in 5s, go idle
       setTimeout(() => {
-        if (ws?.readyState === 1) {
-          ws.send(JSON.stringify({ type: 'join', clientId }))
+        if (state.value === 'reconnecting') {
+          clearSession()
+          state.value = 'idle'
         }
-      }, 300)
+      }, 5000)
     }
 
     function cancelSearch() {
@@ -231,6 +295,7 @@ export default {
         ws = null
       }
       stopSearching()
+      clearSession()
       state.value = 'idle'
     }
 
@@ -264,6 +329,7 @@ export default {
         ws.close()
         ws = null
       }
+      clearSession()
       state.value = 'idle'
       messages.value = []
     }
@@ -285,6 +351,19 @@ export default {
         d.getMinutes().toString().padStart(2, '0')
       )
     }
+
+    // On mount: check for existing session
+    onMounted(() => {
+      const session = loadSession()
+      if (session) {
+        // Restore state and try to reconnect
+        nickname.value = session.nickname
+        partnerNickname.value = session.partnerNickname
+        roomId.value = session.roomId
+        state.value = 'reconnecting'
+        autoReconnect()
+      }
+    })
 
     onUnmounted(() => {
       if (ws) ws.close()
