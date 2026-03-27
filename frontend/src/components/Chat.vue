@@ -41,6 +41,7 @@
             <div class="partner-status" :class="{ typing: isPartnerTyping }">
               {{ isPartnerTyping ? '正在输入...' : '正在聊天' }}
             </div>
+            <div class="chat-duration" v-if="chatDuration">⏱ {{ chatDuration }}</div>
           </div>
         </div>
         <button class="btn-danger-sm" @click="leaveChat">离开</button>
@@ -73,7 +74,10 @@
           <img :src="imagePreview" />
           <button class="image-preview-close" @click="cancelImage">×</button>
         </div>
-        <span class="image-preview-size">{{ imageSizeText }}</span>
+        <span class="image-preview-info">
+          {{ imageSizeText }}
+          <span v-if="uploadProgress" class="upload-progress">{{ uploadProgress }}</span>
+        </span>
       </div>
 
       <div class="chat-input">
@@ -106,6 +110,9 @@
           </svg>
           <span v-else class="send-loading"></span>
         </button>
+      </div>
+      <div class="chat-hint" v-if="inputText.length > 400">
+        <span :class="{ warn: inputText.length > 480 }">{{ inputText.length }}/500</span>
       </div>
     </template>
 
@@ -177,14 +184,39 @@ export default {
     const lightboxUrl = ref('')
     const sending = ref(false)
     const isPartnerTyping = ref(false)
+    const chatDuration = ref('')
+    const uploadProgress = ref('')
     let typingTimer = null
     let partnerTypingTimer = null
     let isTyping = false
+    let chatStartTime = null
+    let durationTimer = null
 
     const genderLabel = computed(() => {
       const map = { male: '男', female: '女', other: '其他' }
       return map[partnerGender.value] || ''
     })
+
+    function updateTitle(text) {
+      document.title = text ? `${text} - Whispr` : 'Whispr - 匿名随机聊天'
+    }
+
+    function startDurationTimer() {
+      chatStartTime = Date.now()
+      chatDuration.value = '0:00'
+      durationTimer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - chatStartTime) / 1000)
+        const mins = Math.floor(elapsed / 60)
+        const secs = elapsed % 60
+        chatDuration.value = mins + ':' + secs.toString().padStart(2, '0')
+      }, 1000)
+    }
+
+    function stopDurationTimer() {
+      if (durationTimer) { clearInterval(durationTimer); durationTimer = null }
+      chatStartTime = null
+      chatDuration.value = ''
+    }
 
     let clientId = localStorage.getItem('whispr_client_id')
     if (!clientId) {
@@ -250,6 +282,8 @@ export default {
           if (ws?.readyState === 1) {
             ws.send(JSON.stringify({ type: 'history' }))
           }
+          startDurationTimer()
+          updateTitle('💬 与 ' + data.partnerNickname + ' 聊天中')
           nextTick(() => inputEl.value?.focus())
           break
 
@@ -264,11 +298,17 @@ export default {
             self: false
           })
           scrollToBottom()
+          // Flash title if tab not focused
+          if (document.hidden) {
+            updateTitle('📩 ' + data.nickname + ' 发来消息')
+          }
           break
 
         case 'partner_left':
+          stopDurationTimer()
           clearSession()
           state.value = 'left'
+          updateTitle('对方已离开')
           break
 
         case 'partner_reconnected':
@@ -417,6 +457,7 @@ export default {
     async function uploadAndSendImage() {
       if (!imageFile.value || state.value !== 'chatting' || sending.value) return
       sending.value = true
+      uploadProgress.value = '上传中...'
       const file = imageFile.value
       const preview = imagePreview.value
 
@@ -433,16 +474,35 @@ export default {
       try {
         const formData = new FormData()
         formData.append('file', file)
-        const res = await fetch('/api/upload', { method: 'POST', body: formData })
-        const data = await res.json()
+
+        // Use XMLHttpRequest for upload progress
+        const data = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+          xhr.open('POST', '/api/upload')
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const pct = Math.round((e.loaded / e.total) * 100)
+              uploadProgress.value = pct + '%'
+            }
+          }
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              resolve(JSON.parse(xhr.responseText))
+            } else {
+              reject(new Error('Upload failed'))
+            }
+          }
+          xhr.onerror = () => reject(new Error('Network error'))
+          xhr.send(formData)
+        })
+
         if (data.url) {
-          // Send compressed to partner, keep original for self
+          uploadProgress.value = '压缩中...'
           ws.send(JSON.stringify({
             type: 'image',
             url: data.url,
             compressed: data.compressed || data.url
           }))
-          // Update optimistic message with original URL
           const lastMsg = messages.value[messages.value.length - 1]
           if (lastMsg && lastMsg.self) {
             lastMsg.imageUrl = data.url
@@ -453,6 +513,7 @@ export default {
       }
 
       cancelImage()
+      uploadProgress.value = ''
       sending.value = false
     }
 
@@ -491,11 +552,24 @@ export default {
       } else {
         startChat()
       }
+
+      // Reset title when tab gains focus
+      const onVisibility = () => {
+        if (!document.hidden && state.value === 'chatting') {
+          updateTitle('💬 与 ' + partnerNickname.value + ' 聊天中')
+        }
+      }
+      document.addEventListener('visibilitychange', onVisibility)
+      onUnmounted(() => {
+        document.removeEventListener('visibilitychange', onVisibility)
+      })
     })
 
     onUnmounted(() => {
       if (ws) ws.close()
       if (searchTimer) clearInterval(searchTimer)
+      stopDurationTimer()
+      updateTitle('')
     })
 
     return {
@@ -503,6 +577,7 @@ export default {
       messages, inputText, searchingSeconds,
       messagesEl, inputEl, fileInputEl,
       imagePreview, imageSizeText, lightboxUrl, sending, isPartnerTyping,
+      chatDuration, uploadProgress,
       startChat, cancelSearch, sendMessage, leaveChat, onTyping,
       onFileSelected, cancelImage, previewImage, formatTime
     }
@@ -573,6 +648,7 @@ export default {
 
 .partner-status { font-size: 12px; color: var(--success); transition: color 0.2s; }
 .partner-status.typing { color: var(--accent); }
+.chat-duration { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 /* ===== Messages ===== */
 .chat-messages {
@@ -696,9 +772,15 @@ export default {
   line-height: 1;
 }
 
-.image-preview-size {
+.image-preview-info {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.upload-progress {
+  color: var(--accent);
+  margin-left: 6px;
+  font-weight: 500;
 }
 
 /* ===== Chat Input ===== */
@@ -726,6 +808,15 @@ export default {
 
 .chat-input input:focus { border-color: var(--accent); }
 .chat-input input::placeholder { color: var(--text-muted); }
+
+.chat-hint {
+  text-align: right;
+  padding: 2px 16px 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+}
+.chat-hint .warn { color: var(--danger); }
 
 .btn-icon {
   width: 40px; height: 40px;
