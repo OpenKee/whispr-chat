@@ -162,6 +162,15 @@ class Matcher {
     this.send(client.partner, payload);
   }
 
+  // Handle typing indicator
+  handleTyping(ws, isTyping) {
+    const client = this.clients.get(ws);
+    if (!client || !client.partner) return;
+    const partnerInfo = this.clients.get(client.partner);
+    if (!partnerInfo || partnerInfo.ws.readyState !== 1) return;
+    this.send(client.partner, { type: 'typing', isTyping: !!isTyping });
+  }
+
   // Handle disconnect / leave
   handleDisconnect(ws, isLeave = false) {
     const client = this.clients.get(ws);

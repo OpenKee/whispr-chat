@@ -123,6 +123,11 @@ async function start() {
               break;
             }
 
+            case 'typing': {
+              matcher.handleTyping(ws, data.isTyping);
+              break;
+            }
+
             case 'leave': {
               const client = matcher.handleDisconnect(ws, true);
               if (client) console.log(`[leave] ${client.nickname}`);

@@ -37,7 +37,9 @@
               <span class="partner-tag" v-if="partnerGender">{{ genderLabel }}</span>
               <span class="partner-tag" v-if="partnerAge">{{ partnerAge }}</span>
             </div>
-            <div class="partner-status">正在聊天</div>
+            <div class="partner-status" :class="{ typing: isPartnerTyping }">
+              {{ isPartnerTyping ? '正在输入...' : '正在聊天' }}
+            </div>
           </div>
         </div>
         <button class="btn-danger-sm" @click="leaveChat">离开</button>
@@ -92,6 +94,7 @@
           ref="inputEl"
           v-model="inputText"
           @keydown.enter="sendMessage"
+          @input="onTyping"
           placeholder="输入消息..."
           maxlength="500"
         />
@@ -171,6 +174,10 @@ export default {
     const imageSizeText = ref('')
     const lightboxUrl = ref('')
     const sending = ref(false)
+    const isPartnerTyping = ref(false)
+    let typingTimer = null
+    let partnerTypingTimer = null
+    let isTyping = false
 
     const genderLabel = computed(() => {
       const map = { male: '男', female: '女', other: '其他' }
@@ -243,6 +250,8 @@ export default {
           break
 
         case 'message':
+          isPartnerTyping.value = false
+          clearTimeout(partnerTypingTimer)
           messages.value.push({
             content: data.content || '',
             imageUrl: data.imageUrl || '',
@@ -259,6 +268,16 @@ export default {
           break
 
         case 'partner_reconnected':
+          break
+
+        case 'typing':
+          isPartnerTyping.value = data.isTyping
+          clearTimeout(partnerTypingTimer)
+          if (data.isTyping) {
+            partnerTypingTimer = setTimeout(() => {
+              isPartnerTyping.value = false
+            }, 3000)
+          }
           break
 
         case 'history':
@@ -326,6 +345,21 @@ export default {
       if (searchTimer) { clearInterval(searchTimer); searchTimer = null }
     }
 
+    function onTyping() {
+      if (!ws || ws.readyState !== 1) return
+      if (!isTyping) {
+        isTyping = true
+        ws.send(JSON.stringify({ type: 'typing', isTyping: true }))
+      }
+      clearTimeout(typingTimer)
+      typingTimer = setTimeout(() => {
+        isTyping = false
+        if (ws?.readyState === 1) {
+          ws.send(JSON.stringify({ type: 'typing', isTyping: false }))
+        }
+      }, 1500)
+    }
+
     function sendMessage() {
       // If there's an image to send
       if (imageFile.value) {
@@ -337,6 +371,12 @@ export default {
       ws.send(JSON.stringify({ type: 'message', content }))
       messages.value.push({ content, nickname: nickname.value, timestamp: Date.now(), self: true })
       inputText.value = ''
+      // Stop typing indicator
+      isTyping = false
+      clearTimeout(typingTimer)
+      if (ws?.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'typing', isTyping: false }))
+      }
       scrollToBottom()
     }
 
@@ -453,8 +493,8 @@ export default {
       state, nickname, partnerNickname, partnerGender, partnerAge, genderLabel, roomId,
       messages, inputText, searchingSeconds,
       messagesEl, inputEl, fileInputEl,
-      imagePreview, imageSizeText, lightboxUrl, sending,
-      startChat, cancelSearch, sendMessage, leaveChat,
+      imagePreview, imageSizeText, lightboxUrl, sending, isPartnerTyping,
+      startChat, cancelSearch, sendMessage, leaveChat, onTyping,
       onFileSelected, cancelImage, previewImage, formatTime
     }
   }
@@ -522,7 +562,8 @@ export default {
   background: var(--bg-input); color: var(--text-muted);
 }
 
-.partner-status { font-size: 12px; color: var(--success); }
+.partner-status { font-size: 12px; color: var(--success); transition: color 0.2s; }
+.partner-status.typing { color: var(--accent); }
 
 /* ===== Messages ===== */
 .chat-messages {
