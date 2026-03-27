@@ -1,0 +1,25 @@
+{
+  "name": "whispr-chat",
+  "version": "1.0.0",
+  "description": "匿名随机聊天 - Random anonymous chat",
+  "main": "backend/server.js",
+  "scripts": {
+    "dev:backend": "node backend/server.js",
+    "dev:frontend": "cd frontend && npx vite --host 0.0.0.0",
+    "build": "cd frontend && npx vite build",
+    "start": "node backend/server.js",
+    "db:cleanup": "node backend/cleanup.js"
+  },
+  "dependencies": {
+    "fastify": "^5.2.0",
+    "@fastify/websocket": "^11.0.0",
+    "@fastify/static": "^8.0.0",
+    "better-sqlite3": "^11.7.0",
+    "nanoid": "^5.0.0"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0",
+    "@vitejs/plugin-vue": "^5.2.0",
+    "vue": "^3.5.0"
+  }
+}
