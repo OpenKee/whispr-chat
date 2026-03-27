@@ -3,7 +3,7 @@ const path = require('path');
 const { Matcher } = require('./matcher');
 const { saveMessage, getMessages, cleanup } = require('./db');
 
-const PORT = process.env.PORT || 3847;
+const PORT = process.env.PORT || 80;
 const matcher = new Matcher();
 
 async function start() {
