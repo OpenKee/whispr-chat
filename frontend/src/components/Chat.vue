@@ -294,11 +294,11 @@ export default {
     function autoReconnect() {
       connect()
       setTimeout(sendJoin, 300)
-      // Timeout: if not matched in 5s, go idle
+      // Timeout: if not matched in 5s, go home
       setTimeout(() => {
         if (state.value === 'reconnecting') {
           clearSession()
-          state.value = 'idle'
+          router.push('/')
         }
       }, 5000)
     }
