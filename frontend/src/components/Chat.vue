@@ -1,6 +1,6 @@
 <template>
   <div class="chat-page">
-    <!-- Reconnecting -->
+    // Reconnecting
     <div v-if="state === 'reconnecting'" class="searching">
       <div class="searching-content">
         <div class="spinner">
@@ -90,20 +90,12 @@
       </div>
     </div>
 
-    <!-- Idle -->
-    <div v-else class="idle-screen">
-      <div class="idle-content">
-        <router-link to="/" class="back-link">← 返回</router-link>
-        <div class="logo-sm">🤫</div>
-        <h2>准备好了吗？</h2>
-        <button class="btn-primary" @click="startChat">开始匹配</button>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 const SESSION_KEY = 'whispr_session'
 
@@ -129,6 +121,7 @@ function clearSession() {
 export default {
   name: 'Chat',
   setup() {
+    const router = useRouter()
     const state = ref('reconnecting')
     const nickname = ref('')
     const partnerNickname = ref('')
@@ -318,7 +311,7 @@ export default {
       }
       stopSearching()
       clearSession()
-      state.value = 'idle'
+      router.push('/')
     }
 
     function stopSearching() {
@@ -352,8 +345,8 @@ export default {
         ws = null
       }
       clearSession()
-      state.value = 'idle'
       messages.value = []
+      router.push('/')
     }
 
     function scrollToBottom() {
@@ -374,7 +367,7 @@ export default {
       )
     }
 
-    // On mount: check for existing session
+    // On mount: check for existing session, otherwise auto-match
     onMounted(() => {
       const session = loadSession()
       if (session) {
@@ -387,7 +380,8 @@ export default {
         state.value = 'reconnecting'
         autoReconnect()
       } else {
-        state.value = 'idle'
+        // No session — auto start matching
+        startChat()
       }
     })
 
@@ -412,44 +406,6 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-/* ===== Idle ===== */
-.idle-screen {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.3s ease;
-}
-
-.idle-content {
-  text-align: center;
-}
-
-.back-link {
-  display: inline-block;
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 14px;
-  margin-bottom: 32px;
-  transition: color 0.2s;
-}
-
-.back-link:hover {
-  color: var(--text-primary);
-}
-
-.logo-sm {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.idle-content h2 {
-  font-size: 22px;
-  font-weight: 500;
-  margin-bottom: 24px;
-  color: var(--text-secondary);
 }
 
 /* ===== Searching ===== */
