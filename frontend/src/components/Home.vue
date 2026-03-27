@@ -51,7 +51,6 @@
     </div>
     <div class="home-footer">
       <span class="online-dot"></span>
-      <span v-html="icons.users" class="icon-inline"></span>
       {{ onlineCount }} 人在线
     </div>
   </div>
@@ -145,8 +144,18 @@ export default {
 }
 
 .logo {
-  color: var(--accent);
+  font-size: 72px;
   margin-bottom: 16px;
+  line-height: 1;
+  animation: logoFloat 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  cursor: default;
+  user-select: none;
+  will-change: transform;
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 .title {

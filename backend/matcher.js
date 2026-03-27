@@ -143,6 +143,45 @@ class Matcher {
       partnerCity: a.city || '',
       roomId
     });
+
+    // Start heartbeat for both
+    this.startHeartbeat(a.ws);
+    this.startHeartbeat(b.ws);
+  }
+
+  // Heartbeat: ping every 30s, disconnect if no pong in 10s
+  startHeartbeat(ws) {
+    const client = this.clients.get(ws);
+    if (!client) return;
+
+    client.heartbeatTimer = setInterval(() => {
+      if (ws.readyState !== 1) {
+        this.stopHeartbeat(ws);
+        return;
+      }
+      // Check if last pong was too long ago
+      if (client.lastPong && Date.now() - client.lastPong > 40000) {
+        this.stopHeartbeat(ws);
+        ws.close();
+        return;
+      }
+      this.send(ws, { type: 'ping' });
+    }, 30000);
+
+    client.lastPong = Date.now();
+  }
+
+  stopHeartbeat(ws) {
+    const client = this.clients.get(ws);
+    if (client?.heartbeatTimer) {
+      clearInterval(client.heartbeatTimer);
+      client.heartbeatTimer = null;
+    }
+  }
+
+  handlePong(ws) {
+    const client = this.clients.get(ws);
+    if (client) client.lastPong = Date.now();
   }
 
   // Handle incoming message
@@ -180,6 +219,8 @@ class Matcher {
   handleDisconnect(ws, isLeave = false) {
     const client = this.clients.get(ws);
     if (!client) return;
+
+    this.stopHeartbeat(ws);
 
     // Remove from waiting queue
     this.waitingQueue = this.waitingQueue.filter(w => w !== ws);

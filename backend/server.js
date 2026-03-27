@@ -7,7 +7,7 @@ const { Matcher } = require('./matcher');
 const { saveMessage, getMessages, cleanup } = require('./db');
 const { getCity } = require('./geoip');
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3847;
 const matcher = new Matcher();
 const generateImageId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 16);
 const IMAGES_DIR = path.join(__dirname, '..', 'data', 'images');
@@ -17,6 +17,31 @@ fs.mkdirSync(IMAGES_DIR, { recursive: true });
 // Allowed image types
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_SIZE = 20 * 1024 * 1024; // 20MB
+
+// Upload rate limit: max 10 uploads per IP per minute
+const uploadLimiter = new Map();
+const UPLOAD_LIMIT = 10;
+const UPLOAD_WINDOW = 60 * 1000;
+
+function checkUploadLimit(ip) {
+  const now = Date.now();
+  let record = uploadLimiter.get(ip);
+  if (!record || now - record.start > UPLOAD_WINDOW) {
+    record = { count: 1, start: now };
+    uploadLimiter.set(ip, record);
+    return true;
+  }
+  record.count++;
+  return record.count <= UPLOAD_LIMIT;
+}
+
+// Clean rate limiter every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of uploadLimiter) {
+    if (now - record.start > UPLOAD_WINDOW) uploadLimiter.delete(ip);
+  }
+}, 5 * 60 * 1000);
 
 async function start() {
   // WebSocket plugin
@@ -42,6 +67,12 @@ async function start() {
 
   // Upload endpoint
   fastify.post('/api/upload', async (req, reply) => {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+
+    if (!checkUploadLimit(ip)) {
+      return reply.code(429).send({ error: '上传太频繁，请稍后再试' });
+    }
+
     const file = await req.file();
     if (!file) {
       return reply.code(400).send({ error: '没有文件' });
@@ -129,6 +160,11 @@ async function start() {
 
             case 'typing': {
               matcher.handleTyping(ws, data.isTyping);
+              break;
+            }
+
+            case 'pong': {
+              matcher.handlePong(ws);
               break;
             }
 

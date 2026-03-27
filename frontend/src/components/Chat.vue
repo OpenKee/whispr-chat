@@ -30,7 +30,7 @@
     <template v-else-if="state === 'chatting' || state === 'ended'">
       <div class="chat-header">
         <div class="chat-header-left">
-          <span class="partner-avatar">👤</span>
+          <span class="partner-avatar" v-html="icons.user"></span>
           <div>
             <div class="partner-name">
               {{ partnerNickname }}
@@ -336,6 +336,12 @@ export default {
             partnerTypingTimer = setTimeout(() => {
               isPartnerTyping.value = false
             }, 3000)
+          }
+          break
+
+        case 'ping':
+          if (ws?.readyState === 1) {
+            ws.send(JSON.stringify({ type: 'pong' }))
           }
           break
 
@@ -651,12 +657,12 @@ export default {
 
 .chat-header-left { display: flex; align-items: center; gap: 12px; }
 .partner-avatar {
-  font-size: 24px;
-  width: 36px;
-  height: 36px;
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--accent-glow);
 }
