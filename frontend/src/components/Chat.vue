@@ -26,8 +26,8 @@
       </div>
     </div>
 
-    <!-- Chatting -->
-    <template v-else-if="state === 'chatting'">
+    <!-- Chatting / Ended -->
+    <template v-else-if="state === 'chatting' || state === 'ended'">
       <div class="chat-header">
         <div class="chat-header-left">
           <span class="partner-avatar">🎭</span>
@@ -38,13 +38,14 @@
               <span class="partner-tag" v-if="partnerAge">{{ partnerAge }}</span>
               <span class="partner-tag" v-if="partnerCity">📍 {{ partnerCity }}</span>
             </div>
-            <div class="partner-status" :class="{ typing: isPartnerTyping }">
+            <div v-if="state === 'chatting'" class="partner-status" :class="{ typing: isPartnerTyping }">
               {{ isPartnerTyping ? '正在输入...' : '正在聊天' }}
             </div>
+            <div v-else class="partner-status ended">已结束</div>
             <div class="chat-duration" v-if="chatDuration">⏱ {{ chatDuration }}</div>
           </div>
         </div>
-        <button class="btn-danger-sm" @click="leaveChat">离开</button>
+        <button v-if="state === 'chatting'" class="btn-danger-sm" @click="leaveChat">离开</button>
       </div>
 
       <div class="chat-messages" ref="messagesEl">
@@ -69,7 +70,7 @@
       </div>
 
       <!-- Image preview before sending -->
-      <div v-if="imagePreview" class="image-preview-bar">
+      <div v-if="imagePreview && state === 'chatting'" class="image-preview-bar">
         <div class="image-preview-thumb">
           <img :src="imagePreview" />
           <button class="image-preview-close" @click="cancelImage">×</button>
@@ -80,57 +81,54 @@
         </span>
       </div>
 
-      <div class="chat-input">
-        <input
-          type="file"
-          ref="fileInputEl"
-          accept="image/jpeg,image/png,image/gif,image/webp"
-          @change="onFileSelected"
-          style="display:none"
-        />
-        <button class="btn-icon" @click="$refs.fileInputEl.click()" title="发送图片">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-        </button>
-        <input
-          ref="inputEl"
-          v-model="inputText"
-          @keydown.enter="sendMessage"
-          @input="onTyping"
-          placeholder="输入消息..."
-          maxlength="500"
-        />
-        <button class="btn-send" @click="sendMessage" :disabled="sending">
-          <svg v-if="!sending" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-          <span v-else class="send-loading"></span>
-        </button>
-      </div>
-      <div class="chat-hint" v-if="inputText.length > 400">
-        <span :class="{ warn: inputText.length > 480 }">{{ inputText.length }}/500</span>
+      <!-- Input area (chatting) -->
+      <template v-if="state === 'chatting'">
+        <div class="chat-input">
+          <input
+            type="file"
+            ref="fileInputEl"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            @change="onFileSelected"
+            style="display:none"
+          />
+          <button class="btn-icon" @click="$refs.fileInputEl.click()" title="发送图片">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </button>
+          <input
+            ref="inputEl"
+            v-model="inputText"
+            @keydown.enter="sendMessage"
+            @input="onTyping"
+            placeholder="输入消息..."
+            maxlength="500"
+          />
+          <button class="btn-send" @click="sendMessage" :disabled="sending">
+            <svg v-if="!sending" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+            <span v-else class="send-loading"></span>
+          </button>
+        </div>
+        <div class="chat-hint" v-if="inputText.length > 400">
+          <span :class="{ warn: inputText.length > 480 }">{{ inputText.length }}/500</span>
+        </div>
+      </template>
+
+      <!-- Ended actions -->
+      <div v-else class="ended-bar">
+        <button class="btn-primary" @click="rematch">重新匹配</button>
+        <router-link to="/" class="btn-ghost">回到首页</router-link>
       </div>
     </template>
 
     <!-- Image lightbox -->
     <div v-if="lightboxUrl" class="lightbox" @click="lightboxUrl = ''">
       <img :src="lightboxUrl" />
-    </div>
-
-    <!-- Partner Left -->
-    <div v-else-if="state === 'left'" class="left-screen">
-      <div class="left-content">
-        <div class="left-emoji">👋</div>
-        <h2>对方已离开</h2>
-        <div class="left-actions">
-          <button class="btn-primary" @click="startChat">再匹配一个</button>
-          <router-link to="/" class="btn-ghost">回到首页</router-link>
-        </div>
-      </div>
     </div>
 
   </div>
@@ -192,32 +190,6 @@ export default {
     let chatStartTime = null
     let durationTimer = null
 
-    const genderLabel = computed(() => {
-      const map = { male: '男', female: '女', other: '其他' }
-      return map[partnerGender.value] || ''
-    })
-
-    function updateTitle(text) {
-      document.title = text ? `${text} - Whispr` : 'Whispr - 匿名随机聊天'
-    }
-
-    function startDurationTimer() {
-      chatStartTime = Date.now()
-      chatDuration.value = '0:00'
-      durationTimer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - chatStartTime) / 1000)
-        const mins = Math.floor(elapsed / 60)
-        const secs = elapsed % 60
-        chatDuration.value = mins + ':' + secs.toString().padStart(2, '0')
-      }, 1000)
-    }
-
-    function stopDurationTimer() {
-      if (durationTimer) { clearInterval(durationTimer); durationTimer = null }
-      chatStartTime = null
-      chatDuration.value = ''
-    }
-
     let clientId = localStorage.getItem('whispr_client_id')
     if (!clientId) {
       clientId = crypto.randomUUID
@@ -247,6 +219,7 @@ export default {
             partnerNickname: partnerNickname.value,
             partnerGender: partnerGender.value,
             partnerAge: partnerAge.value,
+            partnerCity: partnerCity.value,
             roomId: roomId.value,
             savedAt: Date.now()
           })
@@ -255,6 +228,52 @@ export default {
         } else if (state.value === 'searching') {
           stopSearching()
         }
+      }
+    }
+
+    const genderLabel = computed(() => {
+      const map = { male: '男', female: '女', other: '其他' }
+      return map[partnerGender.value] || ''
+    })
+
+    function updateTitle(text) {
+      document.title = text ? `${text} - Whispr` : 'Whispr - 匿名随机聊天'
+    }
+
+    function startDurationTimer() {
+      chatStartTime = Date.now()
+      chatDuration.value = '0:00'
+      durationTimer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - chatStartTime) / 1000)
+        const mins = Math.floor(elapsed / 60)
+        const secs = elapsed % 60
+        chatDuration.value = mins + ':' + secs.toString().padStart(2, '0')
+      }, 1000)
+    }
+
+    function stopDurationTimer() {
+      if (durationTimer) { clearInterval(durationTimer); durationTimer = null }
+      chatStartTime = null
+    }
+
+    function addSystemMessage(text) {
+      messages.value.push({
+        content: text,
+        system: true,
+        timestamp: Date.now()
+      })
+      scrollToBottom()
+    }
+
+    function endChat(reason) {
+      stopDurationTimer()
+      clearSession()
+      state.value = 'ended'
+      if (reason === 'partner_left') {
+        addSystemMessage('对方已离开了聊天')
+        updateTitle('对方已离开')
+      } else {
+        addSystemMessage('你已离开了聊天')
       }
     }
 
@@ -278,7 +297,6 @@ export default {
             roomId: data.roomId,
             savedAt: Date.now()
           })
-          // Load history
           if (ws?.readyState === 1) {
             ws.send(JSON.stringify({ type: 'history' }))
           }
@@ -298,17 +316,13 @@ export default {
             self: false
           })
           scrollToBottom()
-          // Flash title if tab not focused
           if (document.hidden) {
             updateTitle('📩 ' + data.nickname + ' 发来消息')
           }
           break
 
         case 'partner_left':
-          stopDurationTimer()
-          clearSession()
-          state.value = 'left'
-          updateTitle('对方已离开')
+          endChat('partner_left')
           break
 
         case 'partner_reconnected':
@@ -373,6 +387,11 @@ export default {
       setTimeout(sendJoin, 300)
     }
 
+    function rematch() {
+      if (ws) { ws.close(); ws = null }
+      startChat()
+    }
+
     function autoReconnect() {
       connect()
       setTimeout(sendJoin, 300)
@@ -409,7 +428,6 @@ export default {
     }
 
     function sendMessage() {
-      // If there's an image to send
       if (imageFile.value) {
         uploadAndSendImage()
         return
@@ -419,7 +437,6 @@ export default {
       ws.send(JSON.stringify({ type: 'message', content }))
       messages.value.push({ content, nickname: nickname.value, timestamp: Date.now(), self: true })
       inputText.value = ''
-      // Stop typing indicator
       isTyping = false
       clearTimeout(typingTimer)
       if (ws?.readyState === 1) {
@@ -444,7 +461,6 @@ export default {
       const reader = new FileReader()
       reader.onload = (ev) => { imagePreview.value = ev.target.result }
       reader.readAsDataURL(file)
-      // Reset file input
       e.target.value = ''
     }
 
@@ -452,6 +468,7 @@ export default {
       imageFile.value = null
       imagePreview.value = ''
       imageSizeText.value = ''
+      uploadProgress.value = ''
     }
 
     async function uploadAndSendImage() {
@@ -461,7 +478,6 @@ export default {
       const file = imageFile.value
       const preview = imagePreview.value
 
-      // Optimistically show the image
       messages.value.push({
         content: '',
         imageUrl: preview,
@@ -475,7 +491,6 @@ export default {
         const formData = new FormData()
         formData.append('file', file)
 
-        // Use XMLHttpRequest for upload progress
         const data = await new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest()
           xhr.open('POST', '/api/upload')
@@ -513,7 +528,6 @@ export default {
       }
 
       cancelImage()
-      uploadProgress.value = ''
       sending.value = false
     }
 
@@ -522,8 +536,8 @@ export default {
     }
 
     function leaveChat() {
-      if (ws) { ws.send(JSON.stringify({ type: 'leave' })); ws.close(); ws = null }
-      clearSession(); messages.value = []; router.push('/')
+      if (ws) { ws.send(JSON.stringify({ type: 'leave' })) }
+      endChat('self_left')
     }
 
     function scrollToBottom() {
@@ -553,7 +567,6 @@ export default {
         startChat()
       }
 
-      // Reset title when tab gains focus
       const onVisibility = () => {
         if (!document.hidden && state.value === 'chatting') {
           updateTitle('💬 与 ' + partnerNickname.value + ' 聊天中')
@@ -578,7 +591,7 @@ export default {
       messagesEl, inputEl, fileInputEl,
       imagePreview, imageSizeText, lightboxUrl, sending, isPartnerTyping,
       chatDuration, uploadProgress,
-      startChat, cancelSearch, sendMessage, leaveChat, onTyping,
+      startChat, cancelSearch, sendMessage, leaveChat, rematch, onTyping,
       onFileSelected, cancelImage, previewImage, formatTime
     }
   }
@@ -648,6 +661,7 @@ export default {
 
 .partner-status { font-size: 12px; color: var(--success); transition: color 0.2s; }
 .partner-status.typing { color: var(--accent); }
+.partner-status.ended { color: var(--text-muted); }
 .chat-duration { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 /* ===== Messages ===== */
@@ -714,13 +728,8 @@ export default {
   margin-bottom: 4px;
 }
 
-.message.self .message-image {
-  border-bottom-right-radius: 4px;
-}
-
-.message:not(.self) .message-image {
-  border-bottom-left-radius: 4px;
-}
+.message.self .message-image { border-bottom-right-radius: 4px; }
+.message:not(.self) .message-image { border-bottom-left-radius: 4px; }
 
 .message-image img {
   width: 100%;
@@ -728,9 +737,7 @@ export default {
   transition: opacity 0.2s;
 }
 
-.message-image:hover img {
-  opacity: 0.9;
-}
+.message-image:hover img { opacity: 0.9; }
 
 /* ===== Image Preview Bar ===== */
 .image-preview-bar {
@@ -744,15 +751,13 @@ export default {
 
 .image-preview-thumb {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 48px; height: 48px;
   border-radius: 8px;
   overflow: hidden;
 }
 
 .image-preview-thumb img {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   object-fit: cover;
 }
 
@@ -866,6 +871,16 @@ export default {
   to { transform: rotate(360deg); }
 }
 
+/* ===== Ended Bar ===== */
+.ended-bar {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
 /* ===== Lightbox ===== */
 .lightbox {
   position: fixed;
@@ -913,7 +928,8 @@ export default {
   cursor: pointer;
   text-decoration: none;
   transition: all 0.2s;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
 
 .btn-ghost:hover { border-color: var(--text-muted); color: var(--text-primary); }
@@ -930,25 +946,6 @@ export default {
 }
 
 .btn-danger-sm:hover { background: rgba(255, 85, 85, 0.25); }
-
-/* ===== Partner Left ===== */
-.left-screen {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.3s ease;
-}
-
-.left-content { text-align: center; }
-.left-emoji { font-size: 56px; margin-bottom: 16px; }
-
-.left-content h2 {
-  font-size: 22px; font-weight: 500;
-  margin-bottom: 24px; color: var(--text-secondary);
-}
-
-.left-actions { display: flex; gap: 12px; justify-content: center; }
 
 /* ===== Mobile ===== */
 @media (max-width: 600px) {
