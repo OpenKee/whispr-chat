@@ -14,7 +14,7 @@ fs.mkdirSync(IMAGES_DIR, { recursive: true });
 
 // Allowed image types
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 20 * 1024 * 1024; // 20MB
 
 async function start() {
   // WebSocket plugin
@@ -56,7 +56,7 @@ async function start() {
     const buffer = await file.toBuffer();
 
     if (buffer.length > MAX_SIZE) {
-      return reply.code(400).send({ error: '图片太大，最大 5MB' });
+      return reply.code(400).send({ error: '图片太大，最大 20MB' });
     }
 
     await fs.promises.writeFile(filepath, buffer);

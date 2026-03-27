@@ -130,7 +130,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const SESSION_KEY = 'whispr_session'
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024
 
 function saveSession(data) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(data))
@@ -330,7 +330,7 @@ export default {
         return
       }
       if (file.size > MAX_IMAGE_SIZE) {
-        alert('图片太大，最大 5MB')
+        alert('图片太大，最大 20MB')
         return
       }
       imageFile.value = file
