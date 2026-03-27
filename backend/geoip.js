@@ -39,8 +39,16 @@ function getCity(ip) {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          if (json.status === 'success' && json.city) {
-            const city = json.city;
+          if (json.status === 'success') {
+            let city = json.city || '';
+            // 过滤区/县/镇/街道级地名，用 regionName（城市级）兜底
+            const isDistrict = /区$|县$|镇$|街道$|乡$/.test(city);
+            if (isDistrict && json.regionName) {
+              city = json.regionName;
+            }
+            // 统一加 "市" 后缀
+            city = city.replace(/市$/, '');
+            if (city) city += '市';
             cache.set(ip, { city, expires: Date.now() + CACHE_TTL });
             resolve(city);
           } else {
