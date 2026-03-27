@@ -26,17 +26,58 @@ function generateNickname() {
 
 class Matcher {
   constructor() {
-    // Map: ws -> { nickname, partner, roomId, joinedAt }
+    // Map: ws -> { clientId, nickname, partner, roomId, joinedAt }
     this.clients = new Map();
     // Queue of waiting ws connections
     this.waitingQueue = [];
+    // Recently disconnected: clientId -> { partnerWs, roomId, nickname, timer }
+    this.recentlyDisconnected = new Map();
   }
 
   // Add a client and try to match
-  addClient(ws) {
+  addClient(ws, clientId) {
+    // Check if this client was recently in a room — try to reconnect
+    if (clientId && this.recentlyDisconnected.has(clientId)) {
+      const recent = this.recentlyDisconnected.get(clientId);
+      clearTimeout(recent.timer);
+      this.recentlyDisconnected.delete(clientId);
+
+      // Check if partner is still connected
+      if (recent.partnerWs && recent.partnerWs.readyState === 1) {
+        const partnerInfo = this.clients.get(recent.partnerWs);
+        if (partnerInfo) {
+          // Rejoin the same room!
+          const clientInfo = {
+            ws,
+            clientId,
+            nickname: recent.nickname,
+            partner: recent.partnerWs,
+            roomId: recent.roomId,
+            joinedAt: Date.now()
+          };
+          this.clients.set(ws, clientInfo);
+          partnerInfo.partner = ws;
+
+          this.send(ws, {
+            type: 'matched',
+            nickname: recent.nickname,
+            partnerNickname: partnerInfo.nickname,
+            roomId: recent.roomId
+          });
+
+          this.send(recent.partnerWs, {
+            type: 'partner_reconnected'
+          });
+
+          return { matched: true, ...clientInfo };
+        }
+      }
+    }
+
     const nickname = generateNickname();
     const clientInfo = {
       ws,
+      clientId: clientId || null,
       nickname,
       partner: null,
       roomId: null,
@@ -109,15 +150,36 @@ class Matcher {
   }
 
   // Handle disconnect / leave
-  handleDisconnect(ws) {
+  handleDisconnect(ws, isLeave = false) {
     const client = this.clients.get(ws);
     if (!client) return;
 
     // Remove from waiting queue
     this.waitingQueue = this.waitingQueue.filter(w => w !== ws);
 
-    // Notify partner
-    if (client.partner) {
+    if (client.partner && !isLeave && client.clientId) {
+      // Grace period: give 8 seconds to reconnect
+      const partnerWs = client.partner;
+      const roomId = client.roomId;
+      const nickname = client.nickname;
+      const clientId = client.clientId;
+
+      const timer = setTimeout(() => {
+        this.recentlyDisconnected.delete(clientId);
+        // Now actually notify partner
+        const partnerInfo = this.clients.get(partnerWs);
+        if (partnerInfo) {
+          partnerInfo.partner = null;
+          partnerInfo.roomId = null;
+          this.send(partnerWs, { type: 'partner_left' });
+        }
+      }, 8000);
+
+      this.recentlyDisconnected.set(clientId, {
+        partnerWs, roomId, nickname, timer
+      });
+    } else if (client.partner) {
+      // Explicit leave or no clientId — notify immediately
       const partnerInfo = this.clients.get(client.partner);
       if (partnerInfo) {
         partnerInfo.partner = null;

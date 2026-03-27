@@ -27,9 +27,9 @@ async function start() {
 
           switch (data.type) {
             case 'join': {
-              const result = matcher.addClient(ws);
+              const result = matcher.addClient(ws, data.clientId);
               if (result.matched) {
-                console.log(`[match] ${result.nickname} ↔ ${result.partner ? 'partner' : '?'}`);
+                console.log(`[match] ${result.nickname}`);
               } else {
                 console.log(`[queue] ${result.nickname} waiting... (${matcher.waitingCount} in queue)`);
               }
@@ -48,7 +48,7 @@ async function start() {
             }
 
             case 'leave': {
-              const client = matcher.handleDisconnect(ws);
+              const client = matcher.handleDisconnect(ws, true);
               if (client) console.log(`[leave] ${client.nickname}`);
               break;
             }
@@ -68,7 +68,7 @@ async function start() {
       });
 
       ws.on('close', () => {
-        const client = matcher.handleDisconnect(ws);
+        const client = matcher.handleDisconnect(ws, false);
         if (client) console.log(`[disconnect] ${client.nickname}`);
       });
 

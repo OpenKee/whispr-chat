@@ -111,6 +111,13 @@ export default {
     const messagesEl = ref(null)
     const inputEl = ref(null)
 
+    // Persistent client ID for reconnection
+    let clientId = localStorage.getItem('whispr_client_id')
+    if (!clientId) {
+      clientId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)
+      localStorage.setItem('whispr_client_id', clientId)
+    }
+
     let ws = null
     let searchTimer = null
 
@@ -179,6 +186,10 @@ export default {
           state.value = 'left'
           break
 
+        case 'partner_reconnected':
+          // Partner refreshed and came back, no action needed
+          break
+
         case 'timeout':
           stopSearching()
           state.value = 'idle'
@@ -218,7 +229,7 @@ export default {
       // Wait a bit for connection to open
       setTimeout(() => {
         if (ws?.readyState === 1) {
-          ws.send(JSON.stringify({ type: 'join' }))
+          ws.send(JSON.stringify({ type: 'join', clientId }))
         }
       }, 300)
     }
