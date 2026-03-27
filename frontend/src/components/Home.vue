@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="home-content">
-      <div class="logo">🤫</div>
+      <div class="logo" v-html="icons.logo"></div>
       <h1 class="title">Whispr</h1>
       <p class="subtitle">随机匹配，匿名畅聊</p>
 
@@ -14,7 +14,7 @@
               class="option-btn"
               :class="{ active: gender === g.value }"
               @click="gender = g.value"
-            >{{ g.icon }} {{ g.label }}</button>
+            >{{ g.label }}</button>
           </div>
         </div>
 
@@ -39,7 +39,7 @@
 
       <div class="setup-card" v-else>
         <div class="saved-info">
-          <span>{{ genderIcon }} {{ profile.gender === 'male' ? '男' : profile.gender === 'female' ? '女' : '其他' }}</span>
+          <span>{{ profile.gender === 'male' ? '男' : profile.gender === 'female' ? '女' : '其他' }}</span>
           <span class="sep">·</span>
           <span>{{ profile.age }}</span>
           <button class="btn-edit" @click="saved = false">修改</button>
@@ -51,13 +51,15 @@
     </div>
     <div class="home-footer">
       <span class="online-dot"></span>
+      <span v-html="icons.users" class="icon-inline"></span>
       {{ onlineCount }} 人在线
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { Icons } from '../icons'
 
 const PROFILE_KEY = 'whispr_profile'
 
@@ -71,17 +73,12 @@ export default {
     const profile = ref({})
 
     const genders = [
-      { value: 'male', label: '男', icon: '👦' },
-      { value: 'female', label: '女', icon: '👧' },
-      { value: 'other', label: '其他', icon: '🧑' }
+      { value: 'male', label: '男' },
+      { value: 'female', label: '女' },
+      { value: 'other', label: '其他' }
     ]
 
     const ages = ['18-25', '26-35', '36-45', '45+']
-
-    const genderIcon = computed(() => {
-      const g = genders.find(x => x.value === profile.value.gender)
-      return g ? g.icon : ''
-    })
 
     function loadProfile() {
       try {
@@ -124,8 +121,9 @@ export default {
 
     return {
       onlineCount, gender, age, saved, profile,
-      genders, ages, genderIcon,
-      saveAndGo
+      genders, ages,
+      saveAndGo,
+      icons: Icons
     }
   }
 }
@@ -149,7 +147,7 @@ export default {
 }
 
 .logo {
-  font-size: 64px;
+  color: var(--accent);
   margin-bottom: 16px;
 }
 
@@ -193,12 +191,10 @@ export default {
 .options {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .option-btn {
   flex: 1;
-  min-width: 0;
   padding: 10px 8px;
   font-size: 14px;
   border: 1px solid var(--border);
@@ -301,9 +297,10 @@ export default {
   animation: pulse 2s infinite;
 }
 
+.icon-inline { display: inline-flex; vertical-align: middle; }
+
 @media (max-width: 400px) {
   .title { font-size: 36px; }
-  .logo { font-size: 48px; }
   .setup-card { padding: 20px 16px; }
 }
 </style>

@@ -30,19 +30,19 @@
     <template v-else-if="state === 'chatting' || state === 'ended'">
       <div class="chat-header">
         <div class="chat-header-left">
-          <span class="partner-avatar">🎭</span>
+          <span class="partner-avatar" v-html="icons.user"></span>
           <div>
             <div class="partner-name">
               {{ partnerNickname }}
               <span class="partner-tag" v-if="partnerGender">{{ genderLabel }}</span>
               <span class="partner-tag" v-if="partnerAge">{{ partnerAge }}</span>
-              <span class="partner-tag" v-if="partnerCity">📍 {{ partnerCity }}</span>
+              <span class="partner-tag" v-if="partnerCity"><span v-html="icons.mapPin" class="icon-inline"></span> {{ partnerCity }}</span>
             </div>
             <div v-if="state === 'chatting'" class="partner-status" :class="{ typing: isPartnerTyping }">
               {{ isPartnerTyping ? '正在输入...' : '正在聊天' }}
             </div>
             <div v-else class="partner-status ended">已结束</div>
-            <div class="chat-duration" v-if="chatDuration">⏱ {{ chatDuration }}</div>
+            <div class="chat-duration" v-if="chatDuration"><span v-html="icons.clock" class="icon-inline"></span> {{ chatDuration }}</div>
           </div>
         </div>
         <button v-if="state === 'chatting'" class="btn-danger-sm" @click="leaveChat">离开</button>
@@ -50,7 +50,7 @@
 
       <div class="chat-messages" ref="messagesEl">
         <div class="messages-system" v-if="messages.length === 0">
-          已匹配成功，开始聊天吧 ✨
+          已匹配成功，开始聊天吧 <span v-html="icons.sparkle" class="icon-inline"></span>
         </div>
         <div
           v-for="(msg, i) in messages"
@@ -137,6 +137,7 @@
 <script>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Icons } from '../icons'
 
 const SESSION_KEY = 'whispr_session'
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024
@@ -592,7 +593,8 @@ export default {
       imagePreview, imageSizeText, lightboxUrl, sending, isPartnerTyping,
       chatDuration, uploadProgress,
       startChat, cancelSearch, sendMessage, leaveChat, rematch, onTyping,
-      onFileSelected, cancelImage, previewImage, formatTime
+      onFileSelected, cancelImage, previewImage, formatTime,
+      icons: Icons
     }
   }
 }
@@ -635,6 +637,8 @@ export default {
 .searching h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
 .searching-hint { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
 
+.icon-inline { display: inline-flex; vertical-align: middle; align-items: center; }
+
 /* ===== Chat Header ===== */
 .chat-header {
   display: flex;
@@ -646,7 +650,16 @@ export default {
 }
 
 .chat-header-left { display: flex; align-items: center; gap: 12px; }
-.partner-avatar { font-size: 28px; }
+.partner-avatar {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-glow);
+}
 
 .partner-name {
   font-weight: 600; font-size: 15px;
