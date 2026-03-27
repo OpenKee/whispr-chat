@@ -4,7 +4,49 @@
       <div class="logo">🤫</div>
       <h1 class="title">Whispr</h1>
       <p class="subtitle">随机匹配，匿名畅聊</p>
-      <router-link to="/chat" class="btn-primary">开始聊天</router-link>
+
+      <div class="setup-card" v-if="!saved">
+        <div class="setup-group">
+          <label>性别</label>
+          <div class="options">
+            <button
+              v-for="g in genders" :key="g.value"
+              class="option-btn"
+              :class="{ active: gender === g.value }"
+              @click="gender = g.value"
+            >{{ g.icon }} {{ g.label }}</button>
+          </div>
+        </div>
+
+        <div class="setup-group">
+          <label>年龄段</label>
+          <div class="options">
+            <button
+              v-for="a in ages" :key="a"
+              class="option-btn"
+              :class="{ active: age === a }"
+              @click="age = a"
+            >{{ a }}</button>
+          </div>
+        </div>
+
+        <button
+          class="btn-primary"
+          :disabled="!gender || !age"
+          @click="saveAndGo"
+        >开始聊天</button>
+      </div>
+
+      <div class="setup-card" v-else>
+        <div class="saved-info">
+          <span>{{ genderIcon }} {{ profile.gender === 'male' ? '男' : profile.gender === 'female' ? '女' : '其他' }}</span>
+          <span class="sep">·</span>
+          <span>{{ profile.age }}</span>
+          <button class="btn-edit" @click="saved = false">修改</button>
+        </div>
+        <router-link to="/chat" class="btn-primary">开始聊天</router-link>
+      </div>
+
       <p class="hint">匹配到陌生人后即可开始对话</p>
     </div>
     <div class="home-footer">
@@ -15,12 +57,52 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+const PROFILE_KEY = 'whispr_profile'
 
 export default {
   name: 'Home',
   setup() {
     const onlineCount = ref(0)
+    const gender = ref('')
+    const age = ref('')
+    const saved = ref(false)
+    const profile = ref({})
+
+    const genders = [
+      { value: 'male', label: '男', icon: '👦' },
+      { value: 'female', label: '女', icon: '👧' },
+      { value: 'other', label: '其他', icon: '🧑' }
+    ]
+
+    const ages = ['18-25', '26-35', '36-45', '45+']
+
+    const genderIcon = computed(() => {
+      const g = genders.find(x => x.value === profile.value.gender)
+      return g ? g.icon : ''
+    })
+
+    function loadProfile() {
+      try {
+        const raw = localStorage.getItem(PROFILE_KEY)
+        if (raw) {
+          const p = JSON.parse(raw)
+          if (p.gender && p.age) {
+            profile.value = p
+            saved.value = true
+          }
+        }
+      } catch {}
+    }
+
+    function saveAndGo() {
+      const p = { gender: gender.value, age: age.value }
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(p))
+      profile.value = p
+      saved.value = true
+    }
+
     let statsTimer = null
 
     function fetchStats() {
@@ -31,6 +113,7 @@ export default {
     }
 
     onMounted(() => {
+      loadProfile()
       fetchStats()
       statsTimer = setInterval(fetchStats, 10000)
     })
@@ -39,7 +122,11 @@ export default {
       if (statsTimer) clearInterval(statsTimer)
     })
 
-    return { onlineCount }
+    return {
+      onlineCount, gender, age, saved, profile,
+      genders, ages, genderIcon,
+      saveAndGo
+    }
   }
 }
 </script>
@@ -56,6 +143,9 @@ export default {
 
 .home-content {
   text-align: center;
+  width: 100%;
+  max-width: 380px;
+  padding: 0 20px;
 }
 
 .logo {
@@ -76,12 +166,64 @@ export default {
 .subtitle {
   color: var(--text-secondary);
   font-size: 16px;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+}
+
+.setup-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  margin-bottom: 16px;
+}
+
+.setup-group {
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.setup-group label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.option-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 8px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.option-btn:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.option-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  color: var(--accent);
 }
 
 .btn-primary {
   display: inline-block;
-  padding: 14px 48px;
+  width: 100%;
+  padding: 14px;
   font-size: 16px;
   font-weight: 600;
   border: none;
@@ -92,22 +234,53 @@ export default {
   text-decoration: none;
   transition: all 0.2s;
   box-shadow: 0 4px 20px var(--accent-glow);
+  box-sizing: border-box;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 28px var(--accent-glow);
 }
 
-.btn-primary:active {
-  transform: translateY(0);
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.saved-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.sep {
+  color: var(--text-muted);
+}
+
+.btn-edit {
+  font-size: 12px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.btn-edit:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
 }
 
 .hint {
   color: var(--text-muted);
   font-size: 13px;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .home-footer {
@@ -126,5 +299,11 @@ export default {
   border-radius: 50%;
   background: var(--success);
   animation: pulse 2s infinite;
+}
+
+@media (max-width: 400px) {
+  .title { font-size: 36px; }
+  .logo { font-size: 48px; }
+  .setup-card { padding: 20px 16px; }
 }
 </style>

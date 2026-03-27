@@ -32,7 +32,11 @@
         <div class="chat-header-left">
           <span class="partner-avatar">🎭</span>
           <div>
-            <div class="partner-name">{{ partnerNickname }}</div>
+            <div class="partner-name">
+              {{ partnerNickname }}
+              <span class="partner-tag" v-if="partnerGender">{{ genderLabel }}</span>
+              <span class="partner-tag" v-if="partnerAge">{{ partnerAge }}</span>
+            </div>
             <div class="partner-status">正在聊天</div>
           </div>
         </div>
@@ -99,7 +103,7 @@
 </template>
 
 <script>
-import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 
 const SESSION_KEY = 'whispr_session'
 
@@ -125,15 +129,22 @@ function clearSession() {
 export default {
   name: 'Chat',
   setup() {
-    const state = ref('idle')
+    const state = ref('reconnecting')
     const nickname = ref('')
     const partnerNickname = ref('')
+    const partnerGender = ref('')
+    const partnerAge = ref('')
     const roomId = ref('')
     const messages = ref([])
     const inputText = ref('')
     const searchingSeconds = ref(0)
     const messagesEl = ref(null)
     const inputEl = ref(null)
+
+    const genderLabel = computed(() => {
+      const map = { male: '男', female: '女', other: '其他' }
+      return map[partnerGender.value] || ''
+    })
 
     let clientId = localStorage.getItem('whispr_client_id')
     if (!clientId) {
@@ -193,6 +204,8 @@ export default {
         case 'matched':
           nickname.value = data.nickname
           partnerNickname.value = data.partnerNickname
+          partnerGender.value = data.partnerGender || ''
+          partnerAge.value = data.partnerAge || ''
           roomId.value = data.roomId
           state.value = 'chatting'
           stopSearching()
@@ -200,6 +213,8 @@ export default {
           saveSession({
             nickname: data.nickname,
             partnerNickname: data.partnerNickname,
+            partnerGender: data.partnerGender,
+            partnerAge: data.partnerAge,
             roomId: data.roomId,
             savedAt: Date.now()
           })
@@ -254,7 +269,14 @@ export default {
 
     function sendJoin() {
       if (ws?.readyState === 1) {
-        ws.send(JSON.stringify({ type: 'join', clientId }))
+        let profile = {}
+        try { profile = JSON.parse(localStorage.getItem('whispr_profile') || '{}') } catch {}
+        ws.send(JSON.stringify({
+          type: 'join',
+          clientId,
+          gender: profile.gender || '',
+          age: profile.age || ''
+        }))
       }
     }
 
@@ -359,9 +381,13 @@ export default {
         // Restore state and try to reconnect
         nickname.value = session.nickname
         partnerNickname.value = session.partnerNickname
+        partnerGender.value = session.partnerGender || ''
+        partnerAge.value = session.partnerAge || ''
         roomId.value = session.roomId
         state.value = 'reconnecting'
         autoReconnect()
+      } else {
+        state.value = 'idle'
       }
     })
 
@@ -371,7 +397,7 @@ export default {
     })
 
     return {
-      state, nickname, partnerNickname, roomId,
+      state, nickname, partnerNickname, partnerGender, partnerAge, genderLabel, roomId,
       messages, inputText, searchingSeconds,
       messagesEl, inputEl,
       startChat, cancelSearch, sendMessage, leaveChat,
@@ -493,6 +519,18 @@ export default {
 .partner-name {
   font-weight: 600;
   font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.partner-tag {
+  font-size: 11px;
+  font-weight: 400;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-input);
+  color: var(--text-muted);
 }
 
 .partner-status {

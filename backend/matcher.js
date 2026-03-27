@@ -35,7 +35,7 @@ class Matcher {
   }
 
   // Add a client and try to match
-  addClient(ws, clientId) {
+  addClient(ws, clientId, gender, age) {
     // Check if this client was recently in a room — try to reconnect
     if (clientId && this.recentlyDisconnected.has(clientId)) {
       const recent = this.recentlyDisconnected.get(clientId);
@@ -51,6 +51,8 @@ class Matcher {
             ws,
             clientId,
             nickname: recent.nickname,
+            gender: recent.gender || '',
+            age: recent.age || '',
             partner: recent.partnerWs,
             roomId: recent.roomId,
             joinedAt: Date.now()
@@ -62,6 +64,8 @@ class Matcher {
             type: 'matched',
             nickname: recent.nickname,
             partnerNickname: partnerInfo.nickname,
+            partnerGender: partnerInfo.gender || '',
+            partnerAge: partnerInfo.age || '',
             roomId: recent.roomId
           });
 
@@ -79,6 +83,8 @@ class Matcher {
       ws,
       clientId: clientId || null,
       nickname,
+      gender: gender || '',
+      age: age || '',
       partner: null,
       roomId: null,
       joinedAt: Date.now()
@@ -119,6 +125,8 @@ class Matcher {
       type: 'matched',
       nickname: a.nickname,
       partnerNickname: b.nickname,
+      partnerGender: b.gender || '',
+      partnerAge: b.age || '',
       roomId
     });
 
@@ -126,6 +134,8 @@ class Matcher {
       type: 'matched',
       nickname: b.nickname,
       partnerNickname: a.nickname,
+      partnerGender: a.gender || '',
+      partnerAge: a.age || '',
       roomId
     });
   }
@@ -163,6 +173,8 @@ class Matcher {
       const roomId = client.roomId;
       const nickname = client.nickname;
       const clientId = client.clientId;
+      const gender = client.gender;
+      const age = client.age;
 
       const timer = setTimeout(() => {
         this.recentlyDisconnected.delete(clientId);
@@ -176,7 +188,7 @@ class Matcher {
       }, 8000);
 
       this.recentlyDisconnected.set(clientId, {
-        partnerWs, roomId, nickname, timer
+        partnerWs, roomId, nickname, gender, age, timer
       });
     } else if (client.partner) {
       // Explicit leave or no clientId — notify immediately

@@ -27,7 +27,7 @@ async function start() {
 
           switch (data.type) {
             case 'join': {
-              const result = matcher.addClient(ws, data.clientId);
+              const result = matcher.addClient(ws, data.clientId, data.gender, data.age);
               if (result.matched) {
                 console.log(`[match] ${result.nickname}`);
               } else {
