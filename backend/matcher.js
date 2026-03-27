@@ -35,7 +35,7 @@ class Matcher {
   }
 
   // Add a client and try to match
-  addClient(ws, clientId, gender, age) {
+  addClient(ws, clientId, gender, age, city) {
     // Check if this client was recently in a room — try to reconnect
     if (clientId && this.recentlyDisconnected.has(clientId)) {
       const recent = this.recentlyDisconnected.get(clientId);
@@ -53,6 +53,7 @@ class Matcher {
             nickname: recent.nickname,
             gender: recent.gender || '',
             age: recent.age || '',
+            city: recent.city || '',
             partner: recent.partnerWs,
             roomId: recent.roomId,
             joinedAt: Date.now()
@@ -66,6 +67,7 @@ class Matcher {
             partnerNickname: partnerInfo.nickname,
             partnerGender: partnerInfo.gender || '',
             partnerAge: partnerInfo.age || '',
+            partnerCity: partnerInfo.city || '',
             roomId: recent.roomId
           });
 
@@ -85,6 +87,7 @@ class Matcher {
       nickname,
       gender: gender || '',
       age: age || '',
+      city: city || '',
       partner: null,
       roomId: null,
       joinedAt: Date.now()
@@ -127,6 +130,7 @@ class Matcher {
       partnerNickname: b.nickname,
       partnerGender: b.gender || '',
       partnerAge: b.age || '',
+      partnerCity: b.city || '',
       roomId
     });
 
@@ -136,6 +140,7 @@ class Matcher {
       partnerNickname: a.nickname,
       partnerGender: a.gender || '',
       partnerAge: a.age || '',
+      partnerCity: a.city || '',
       roomId
     });
   }
@@ -187,6 +192,7 @@ class Matcher {
       const clientId = client.clientId;
       const gender = client.gender;
       const age = client.age;
+      const city = client.city;
 
       const timer = setTimeout(() => {
         this.recentlyDisconnected.delete(clientId);
@@ -200,7 +206,7 @@ class Matcher {
       }, 8000);
 
       this.recentlyDisconnected.set(clientId, {
-        partnerWs, roomId, nickname, gender, age, timer
+        partnerWs, roomId, nickname, gender, age, city, timer
       });
     } else if (client.partner) {
       // Explicit leave or no clientId — notify immediately

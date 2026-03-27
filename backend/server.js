@@ -5,6 +5,7 @@ const sharp = require('sharp');
 const { customAlphabet } = require('nanoid');
 const { Matcher } = require('./matcher');
 const { saveMessage, getMessages, cleanup } = require('./db');
+const { getCity } = require('./geoip');
 
 const PORT = process.env.PORT || 80;
 const matcher = new Matcher();
@@ -85,18 +86,20 @@ async function start() {
   fastify.register(async function (fastify) {
     fastify.get('/ws', { websocket: true }, (connection, req) => {
       const ws = connection;
+      const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
 
-      ws.on('message', (raw) => {
+      ws.on('message', async (raw) => {
         try {
           const data = JSON.parse(raw.toString());
 
           switch (data.type) {
             case 'join': {
-              const result = matcher.addClient(ws, data.clientId, data.gender, data.age);
+              const city = await getCity(ip);
+              const result = matcher.addClient(ws, data.clientId, data.gender, data.age, city);
               if (result.matched) {
-                console.log(`[match] ${result.nickname}`);
+                console.log(`[match] ${result.nickname} (${city})`);
               } else {
-                console.log(`[queue] ${result.nickname} waiting... (${matcher.waitingCount} in queue)`);
+                console.log(`[queue] ${result.nickname} (${city}) waiting...`);
               }
               break;
             }

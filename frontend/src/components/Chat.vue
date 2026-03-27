@@ -36,6 +36,7 @@
               {{ partnerNickname }}
               <span class="partner-tag" v-if="partnerGender">{{ genderLabel }}</span>
               <span class="partner-tag" v-if="partnerAge">{{ partnerAge }}</span>
+              <span class="partner-tag" v-if="partnerCity">📍 {{ partnerCity }}</span>
             </div>
             <div class="partner-status" :class="{ typing: isPartnerTyping }">
               {{ isPartnerTyping ? '正在输入...' : '正在聊天' }}
@@ -162,6 +163,7 @@ export default {
     const partnerNickname = ref('')
     const partnerGender = ref('')
     const partnerAge = ref('')
+    const partnerCity = ref('')
     const roomId = ref('')
     const messages = ref([])
     const inputText = ref('')
@@ -231,6 +233,7 @@ export default {
           partnerNickname.value = data.partnerNickname
           partnerGender.value = data.partnerGender || ''
           partnerAge.value = data.partnerAge || ''
+          partnerCity.value = data.partnerCity || ''
           roomId.value = data.roomId
           state.value = 'chatting'
           stopSearching()
@@ -239,6 +242,7 @@ export default {
             partnerNickname: data.partnerNickname,
             partnerGender: data.partnerGender,
             partnerAge: data.partnerAge,
+            partnerCity: data.partnerCity,
             roomId: data.roomId,
             savedAt: Date.now()
           })
@@ -476,6 +480,7 @@ export default {
         partnerNickname.value = session.partnerNickname
         partnerGender.value = session.partnerGender || ''
         partnerAge.value = session.partnerAge || ''
+        partnerCity.value = session.partnerCity || ''
         roomId.value = session.roomId
         state.value = 'reconnecting'
         autoReconnect()
@@ -490,7 +495,7 @@ export default {
     })
 
     return {
-      state, nickname, partnerNickname, partnerGender, partnerAge, genderLabel, roomId,
+      state, nickname, partnerNickname, partnerGender, partnerAge, partnerCity, genderLabel, roomId,
       messages, inputText, searchingSeconds,
       messagesEl, inputEl, fileInputEl,
       imagePreview, imageSizeText, lightboxUrl, sending, isPartnerTyping,
