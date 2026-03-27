@@ -20,6 +20,7 @@ db.exec(`
     room_id TEXT NOT NULL,
     nickname TEXT NOT NULL,
     content TEXT NOT NULL,
+    image_url TEXT DEFAULT '',
     created_at DATETIME DEFAULT (datetime('now'))
   );
 
@@ -27,21 +28,24 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
 `);
 
+// Add image_url column if missing (migration)
+try { db.exec("ALTER TABLE messages ADD COLUMN image_url TEXT DEFAULT ''"); } catch {}
+
 // Prepared statements
 const insertMessage = db.prepare(
-  'INSERT INTO messages (room_id, nickname, content) VALUES (?, ?, ?)'
+  'INSERT INTO messages (room_id, nickname, content, image_url) VALUES (?, ?, ?, ?)'
 );
 
 const getMessagesByRoom = db.prepare(
-  'SELECT nickname, content, created_at FROM messages WHERE room_id = ? ORDER BY created_at ASC LIMIT 200'
+  'SELECT nickname, content, image_url, created_at FROM messages WHERE room_id = ? ORDER BY created_at ASC LIMIT 200'
 );
 
 const deleteOldMessages = db.prepare(
   "DELETE FROM messages WHERE created_at < datetime('now', '-7 days')"
 );
 
-function saveMessage(roomId, nickname, content) {
-  return insertMessage.run(roomId, nickname, content);
+function saveMessage(roomId, nickname, content, imageUrl) {
+  return insertMessage.run(roomId, nickname, content, imageUrl || '');
 }
 
 function getMessages(roomId) {

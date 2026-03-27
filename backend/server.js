@@ -96,7 +96,7 @@ async function start() {
             case 'image': {
               const client = matcher.clients.get(ws);
               if (client && client.roomId && data.url) {
-                saveMessage(client.roomId, client.nickname, '[图片]');
+                saveMessage(client.roomId, client.nickname, '', data.url);
                 matcher.handleMessage(ws, { type: 'message', content: '', imageUrl: data.url });
               }
               break;

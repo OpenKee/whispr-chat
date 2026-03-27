@@ -235,6 +235,10 @@ export default {
             roomId: data.roomId,
             savedAt: Date.now()
           })
+          // Load history
+          if (ws?.readyState === 1) {
+            ws.send(JSON.stringify({ type: 'history' }))
+          }
           nextTick(() => inputEl.value?.focus())
           break
 
@@ -255,6 +259,20 @@ export default {
           break
 
         case 'partner_reconnected':
+          break
+
+        case 'history':
+          if (data.messages && data.messages.length > 0) {
+            const historyMsgs = data.messages.map(m => ({
+              content: m.content || '',
+              imageUrl: m.image_url || '',
+              nickname: m.nickname,
+              timestamp: new Date(m.created_at + 'Z').getTime(),
+              self: m.nickname === nickname.value
+            }))
+            messages.value = [...historyMsgs, ...messages.value]
+            scrollToBottom()
+          }
           break
 
         case 'timeout':

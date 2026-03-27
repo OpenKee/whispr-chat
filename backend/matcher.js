@@ -151,12 +151,15 @@ class Matcher {
       return;
     }
 
-    this.send(client.partner, {
+    const payload = {
       type: 'message',
-      content: data.content,
+      content: data.content || '',
       nickname: client.nickname,
       timestamp: Date.now()
-    });
+    };
+    if (data.imageUrl) payload.imageUrl = data.imageUrl;
+
+    this.send(client.partner, payload);
   }
 
   // Handle disconnect / leave
