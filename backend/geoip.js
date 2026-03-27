@@ -12,7 +12,11 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000);
 
-// English city name -> Chinese mapping
+function normalizeCity(raw) {
+  if (!raw || raw === 'undefined' || raw === 'null') return '';
+  let city = raw.replace(/市$/, '');
+  return city ? city + '市' : '';
+}
 const CITY_MAP = {
   'Beijing': '北京', 'Shanghai': '上海', 'Guangzhou': '广州', 'Shenzhen': '深圳',
   'Chengdu': '成都', 'Hangzhou': '杭州', 'Wuhan': '武汉', 'Nanjing': '南京',
@@ -95,9 +99,7 @@ function fetchFromIpApi(ip) {
               resolve(''); // 让 ip.sb 兜底
               return;
             }
-            city = city.replace(/市$/, '');
-            if (city) city += '市';
-            resolve(city);
+            resolve(normalizeCity(city));
           } else {
             resolve('');
           }
@@ -121,9 +123,7 @@ function fetchFromIpSb(ip) {
           let city = json.city || '';
           // Translate to Chinese if mapping exists
           city = CITY_MAP[city] || city;
-          city = city.replace(/市$/, '');
-          if (city) city += '市';
-          resolve(city);
+          resolve(normalizeCity(city));
         } catch { resolve(''); }
       });
     });

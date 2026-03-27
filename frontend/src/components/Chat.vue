@@ -30,7 +30,7 @@
     <template v-else-if="state === 'chatting' || state === 'ended'">
       <div class="chat-header">
         <div class="chat-header-left">
-          <span class="partner-avatar" v-html="icons.user"></span>
+          <span class="partner-avatar">👤</span>
           <div>
             <div class="partner-name">
               {{ partnerNickname }}
@@ -651,12 +651,12 @@ export default {
 
 .chat-header-left { display: flex; align-items: center; gap: 12px; }
 .partner-avatar {
-  color: var(--accent);
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
   border-radius: 50%;
   background: var(--accent-glow);
 }

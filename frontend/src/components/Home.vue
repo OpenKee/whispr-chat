@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="home-content">
-      <div class="logo" v-html="icons.logo"></div>
+      <div class="logo">🤫</div>
       <h1 class="title">Whispr</h1>
       <p class="subtitle">随机匹配，匿名畅聊</p>
 
@@ -59,7 +59,6 @@
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Icons } from '../icons'
 
 const PROFILE_KEY = 'whispr_profile'
 
@@ -122,8 +121,7 @@ export default {
     return {
       onlineCount, gender, age, saved, profile,
       genders, ages,
-      saveAndGo,
-      icons: Icons
+      saveAndGo
     }
   }
 }

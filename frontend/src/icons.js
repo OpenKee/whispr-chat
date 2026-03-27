@@ -2,7 +2,13 @@
 // Using Lucide icon paths (https://lucide.dev) — MIT License
 
 export const Icons = {
-  logo: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="none"/><path d="M8 10c0-1.1.9-2 2-2h0c1.1 0 2 .9 2 2"/><path d="M14 10c0-1.1.9-2 2-2h0c1.1 0 2 .9 2 2"/><path d="M9 16c.8.5 1.8.8 3 .8s2.2-.3 3-.8"/><circle cx="9" cy="10" r="0.5" fill="currentColor"/><circle cx="15" cy="10" r="0.5" fill="currentColor"/></svg>`,
+  logo: `<svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+    <rect width="48" height="48" rx="14" fill="currentColor" opacity="0.12"/>
+    <path d="M14 18a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H21l-5 4v-4h-0a2 2 0 0 1-2-2V18z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="19" y1="22" x2="19" y2="22.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    <line x1="24" y1="22" x2="24" y2="22.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    <line x1="29" y1="22" x2="29" y2="22.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </svg>`,
 
   user: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
 
