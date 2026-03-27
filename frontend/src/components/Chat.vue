@@ -388,8 +388,13 @@ export default {
         const res = await fetch('/api/upload', { method: 'POST', body: formData })
         const data = await res.json()
         if (data.url) {
-          ws.send(JSON.stringify({ type: 'image', url: data.url }))
-          // Update the optimistic message with the real URL
+          // Send compressed to partner, keep original for self
+          ws.send(JSON.stringify({
+            type: 'image',
+            url: data.url,
+            compressed: data.compressed || data.url
+          }))
+          // Update optimistic message with original URL
           const lastMsg = messages.value[messages.value.length - 1]
           if (lastMsg && lastMsg.self) {
             lastMsg.imageUrl = data.url

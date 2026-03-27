@@ -1,6 +1,7 @@
 const fastify = require('fastify')({ logger: false });
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 const { customAlphabet } = require('nanoid');
 const { Matcher } = require('./matcher');
 const { saveMessage, getMessages, cleanup } = require('./db');
@@ -50,8 +51,11 @@ async function start() {
     }
 
     const ext = file.mimetype.split('/')[1] === 'jpeg' ? 'jpg' : file.mimetype.split('/')[1];
-    const filename = generateImageId() + '.' + ext;
+    const id = generateImageId();
+    const filename = id + '.' + ext;
     const filepath = path.join(IMAGES_DIR, filename);
+    const compressedName = id + '_c.webp';
+    const compressedPath = path.join(IMAGES_DIR, compressedName);
 
     const buffer = await file.toBuffer();
 
@@ -59,9 +63,22 @@ async function start() {
       return reply.code(400).send({ error: '图片太大，最大 20MB' });
     }
 
+    // Save original
     await fs.promises.writeFile(filepath, buffer);
 
-    return { url: '/images/' + filename };
+    // Generate compressed version (max 1280px wide, quality 75, webp)
+    try {
+      await sharp(buffer)
+        .resize({ width: 1280, height: 1280, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 75 })
+        .toFile(compressedPath);
+    } catch (err) {
+      console.error('[compress] Failed:', err.message);
+      // Fallback: use original as compressed
+      await fs.promises.copyFile(filepath, compressedPath);
+    }
+
+    return { url: '/images/' + filename, compressed: '/images/' + compressedName };
   });
 
   // WebSocket endpoint
@@ -96,8 +113,12 @@ async function start() {
             case 'image': {
               const client = matcher.clients.get(ws);
               if (client && client.roomId && data.url) {
-                saveMessage(client.roomId, client.nickname, '', data.url);
-                matcher.handleMessage(ws, { type: 'message', content: '', imageUrl: data.url });
+                saveMessage(client.roomId, client.nickname, '', data.compressed || data.url);
+                matcher.handleMessage(ws, {
+                  type: 'message',
+                  content: '',
+                  imageUrl: data.compressed || data.url
+                });
               }
               break;
             }
