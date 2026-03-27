@@ -1,6 +1,6 @@
 <template>
   <div class="chat-page">
-    // Reconnecting
+    <!-- Reconnecting -->
     <div v-if="state === 'reconnecting'" class="searching">
       <div class="searching-content">
         <div class="spinner">
@@ -55,13 +55,39 @@
         >
           <div v-if="msg.system" class="system-text">{{ msg.content }}</div>
           <template v-else>
-            <div class="message-bubble">{{ msg.content }}</div>
+            <div v-if="msg.imageUrl" class="message-image" @click="previewImage(msg.imageUrl)">
+              <img :src="msg.imageUrl" loading="lazy" />
+            </div>
+            <div v-if="msg.content" class="message-bubble">{{ msg.content }}</div>
             <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
           </template>
         </div>
       </div>
 
+      <!-- Image preview before sending -->
+      <div v-if="imagePreview" class="image-preview-bar">
+        <div class="image-preview-thumb">
+          <img :src="imagePreview" />
+          <button class="image-preview-close" @click="cancelImage">×</button>
+        </div>
+        <span class="image-preview-size">{{ imageSizeText }}</span>
+      </div>
+
       <div class="chat-input">
+        <input
+          type="file"
+          ref="fileInputEl"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          @change="onFileSelected"
+          style="display:none"
+        />
+        <button class="btn-icon" @click="$refs.fileInputEl.click()" title="发送图片">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </button>
         <input
           ref="inputEl"
           v-model="inputText"
@@ -69,14 +95,20 @@
           placeholder="输入消息..."
           maxlength="500"
         />
-        <button class="btn-send" @click="sendMessage" :disabled="!inputText.trim()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="btn-send" @click="sendMessage" :disabled="sending">
+          <svg v-if="!sending" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="22" y1="2" x2="11" y2="13"></line>
             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
           </svg>
+          <span v-else class="send-loading"></span>
         </button>
       </div>
     </template>
+
+    <!-- Image lightbox -->
+    <div v-if="lightboxUrl" class="lightbox" @click="lightboxUrl = ''">
+      <img :src="lightboxUrl" />
+    </div>
 
     <!-- Partner Left -->
     <div v-else-if="state === 'left'" class="left-screen">
@@ -98,6 +130,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const SESSION_KEY = 'whispr_session'
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
 function saveSession(data) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(data))
@@ -108,7 +141,6 @@ function loadSession() {
     const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
     const s = JSON.parse(raw)
-    // Session valid for 30 seconds after disconnect
     if (Date.now() - (s.savedAt || 0) > 30000) return null
     return s
   } catch { return null }
@@ -133,6 +165,12 @@ export default {
     const searchingSeconds = ref(0)
     const messagesEl = ref(null)
     const inputEl = ref(null)
+    const fileInputEl = ref(null)
+    const imagePreview = ref('')
+    const imageFile = ref(null)
+    const imageSizeText = ref('')
+    const lightboxUrl = ref('')
+    const sending = ref(false)
 
     const genderLabel = computed(() => {
       const map = { male: '男', female: '女', other: '其他' }
@@ -157,25 +195,17 @@ export default {
 
     function connect() {
       if (ws && ws.readyState <= 1) return
-
       ws = new WebSocket(getWsUrl())
-
-      ws.onopen = () => {
-        console.log('[ws] connected')
-      }
-
       ws.onmessage = (event) => {
-        const data = JSON.parse(event.data)
-        handleMessage(data)
+        handleMessage(JSON.parse(event.data))
       }
-
       ws.onclose = () => {
-        console.log('[ws] disconnected')
         if (state.value === 'chatting') {
-          // Save session for reconnection
           saveSession({
             nickname: nickname.value,
             partnerNickname: partnerNickname.value,
+            partnerGender: partnerGender.value,
+            partnerAge: partnerAge.value,
             roomId: roomId.value,
             savedAt: Date.now()
           })
@@ -183,12 +213,7 @@ export default {
           autoReconnect()
         } else if (state.value === 'searching') {
           stopSearching()
-          state.value = 'idle'
         }
-      }
-
-      ws.onerror = () => {
-        console.error('[ws] error')
       }
     }
 
@@ -202,7 +227,6 @@ export default {
           roomId.value = data.roomId
           state.value = 'chatting'
           stopSearching()
-          // Save session
           saveSession({
             nickname: data.nickname,
             partnerNickname: data.partnerNickname,
@@ -211,18 +235,13 @@ export default {
             roomId: data.roomId,
             savedAt: Date.now()
           })
-          nextTick(() => {
-            inputEl.value?.focus()
-          })
-          break
-
-        case 'waiting':
-          state.value = 'searching'
+          nextTick(() => inputEl.value?.focus())
           break
 
         case 'message':
           messages.value.push({
-            content: data.content,
+            content: data.content || '',
+            imageUrl: data.imageUrl || '',
             nickname: data.nickname,
             timestamp: data.timestamp,
             self: false
@@ -241,21 +260,6 @@ export default {
         case 'timeout':
           stopSearching()
           clearSession()
-          state.value = 'idle'
-          break
-
-        case 'history':
-          if (data.messages) {
-            data.messages.forEach(m => {
-              messages.value.push({
-                content: m.content,
-                nickname: m.nickname,
-                timestamp: new Date(m.created_at + 'Z').getTime(),
-                self: m.nickname === nickname.value
-              })
-            })
-            scrollToBottom()
-          }
           break
       }
     }
@@ -265,10 +269,8 @@ export default {
         let profile = {}
         try { profile = JSON.parse(localStorage.getItem('whispr_profile') || '{}') } catch {}
         ws.send(JSON.stringify({
-          type: 'join',
-          clientId,
-          gender: profile.gender || '',
-          age: profile.age || ''
+          type: 'join', clientId,
+          gender: profile.gender || '', age: profile.age || ''
         }))
       }
     }
@@ -278,15 +280,10 @@ export default {
       searchingSeconds.value = 0
       messages.value = []
       clearSession()
-
       searchTimer = setInterval(() => {
         searchingSeconds.value++
-        if (searchingSeconds.value > 120) {
-          stopSearching()
-          state.value = 'idle'
-        }
+        if (searchingSeconds.value > 120) { stopSearching() }
       }, 1000)
-
       connect()
       setTimeout(sendJoin, 300)
     }
@@ -294,7 +291,6 @@ export default {
     function autoReconnect() {
       connect()
       setTimeout(sendJoin, 300)
-      // Timeout: if not matched in 5s, go home
       setTimeout(() => {
         if (state.value === 'reconnecting') {
           clearSession()
@@ -304,74 +300,115 @@ export default {
     }
 
     function cancelSearch() {
-      if (ws) {
-        ws.send(JSON.stringify({ type: 'leave' }))
-        ws.close()
-        ws = null
-      }
-      stopSearching()
-      clearSession()
-      router.push('/')
+      if (ws) { ws.send(JSON.stringify({ type: 'leave' })); ws.close(); ws = null }
+      stopSearching(); clearSession(); router.push('/')
     }
 
     function stopSearching() {
-      if (searchTimer) {
-        clearInterval(searchTimer)
-        searchTimer = null
-      }
+      if (searchTimer) { clearInterval(searchTimer); searchTimer = null }
     }
 
     function sendMessage() {
+      // If there's an image to send
+      if (imageFile.value) {
+        uploadAndSendImage()
+        return
+      }
       const content = inputText.value.trim()
       if (!content || state.value !== 'chatting' || !ws) return
-
       ws.send(JSON.stringify({ type: 'message', content }))
-
-      messages.value.push({
-        content,
-        nickname: nickname.value,
-        timestamp: Date.now(),
-        self: true
-      })
-
+      messages.value.push({ content, nickname: nickname.value, timestamp: Date.now(), self: true })
       inputText.value = ''
       scrollToBottom()
     }
 
-    function leaveChat() {
-      if (ws) {
-        ws.send(JSON.stringify({ type: 'leave' }))
-        ws.close()
-        ws = null
+    function onFileSelected(e) {
+      const file = e.target.files[0]
+      if (!file) return
+      if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+        alert('仅支持 JPG/PNG/GIF/WEBP 格式')
+        return
       }
-      clearSession()
-      messages.value = []
-      router.push('/')
+      if (file.size > MAX_IMAGE_SIZE) {
+        alert('图片太大，最大 5MB')
+        return
+      }
+      imageFile.value = file
+      imageSizeText.value = (file.size / 1024).toFixed(0) + ' KB'
+      const reader = new FileReader()
+      reader.onload = (ev) => { imagePreview.value = ev.target.result }
+      reader.readAsDataURL(file)
+      // Reset file input
+      e.target.value = ''
+    }
+
+    function cancelImage() {
+      imageFile.value = null
+      imagePreview.value = ''
+      imageSizeText.value = ''
+    }
+
+    async function uploadAndSendImage() {
+      if (!imageFile.value || state.value !== 'chatting' || sending.value) return
+      sending.value = true
+      const file = imageFile.value
+      const preview = imagePreview.value
+
+      // Optimistically show the image
+      messages.value.push({
+        content: '',
+        imageUrl: preview,
+        nickname: nickname.value,
+        timestamp: Date.now(),
+        self: true
+      })
+      scrollToBottom()
+
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        const data = await res.json()
+        if (data.url) {
+          ws.send(JSON.stringify({ type: 'image', url: data.url }))
+          // Update the optimistic message with the real URL
+          const lastMsg = messages.value[messages.value.length - 1]
+          if (lastMsg && lastMsg.self) {
+            lastMsg.imageUrl = data.url
+          }
+        }
+      } catch (err) {
+        console.error('Upload failed:', err)
+      }
+
+      cancelImage()
+      sending.value = false
+    }
+
+    function previewImage(url) {
+      lightboxUrl.value = url
+    }
+
+    function leaveChat() {
+      if (ws) { ws.send(JSON.stringify({ type: 'leave' })); ws.close(); ws = null }
+      clearSession(); messages.value = []; router.push('/')
     }
 
     function scrollToBottom() {
       nextTick(() => {
-        if (messagesEl.value) {
-          messagesEl.value.scrollTop = messagesEl.value.scrollHeight
-        }
+        if (messagesEl.value) messagesEl.value.scrollTop = messagesEl.value.scrollHeight
       })
     }
 
     function formatTime(ts) {
       if (!ts) return ''
       const d = new Date(ts)
-      return (
-        d.getHours().toString().padStart(2, '0') +
-        ':' +
-        d.getMinutes().toString().padStart(2, '0')
-      )
+      return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0')
     }
 
-    // On mount: check for existing session, otherwise auto-match
     onMounted(() => {
       const session = loadSession()
       if (session) {
-        // Restore state and try to reconnect
         nickname.value = session.nickname
         partnerNickname.value = session.partnerNickname
         partnerGender.value = session.partnerGender || ''
@@ -380,7 +417,6 @@ export default {
         state.value = 'reconnecting'
         autoReconnect()
       } else {
-        // No session — auto start matching
         startChat()
       }
     })
@@ -393,9 +429,10 @@ export default {
     return {
       state, nickname, partnerNickname, partnerGender, partnerAge, genderLabel, roomId,
       messages, inputText, searchingSeconds,
-      messagesEl, inputEl,
+      messagesEl, inputEl, fileInputEl,
+      imagePreview, imageSizeText, lightboxUrl, sending,
       startChat, cancelSearch, sendMessage, leaveChat,
-      formatTime
+      onFileSelected, cancelImage, previewImage, formatTime
     }
   }
 }
@@ -417,9 +454,7 @@ export default {
   animation: fadeIn 0.3s ease;
 }
 
-.searching-content {
-  text-align: center;
-}
+.searching-content { text-align: center; }
 
 .spinner {
   display: flex;
@@ -429,30 +464,18 @@ export default {
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 12px; height: 12px;
   border-radius: 50%;
   background: var(--accent);
   animation: dotBounce 1.4s infinite ease-in-out both;
 }
-
 .dot1 { animation-delay: -0.32s; }
 .dot2 { animation-delay: -0.16s; }
-.dot3 { animation-delay: 0s; }
 
-.searching h2 {
-  font-size: 20px;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
+.searching h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+.searching-hint { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
 
-.searching-hint {
-  color: var(--text-muted);
-  font-size: 14px;
-  margin-bottom: 24px;
-}
-
-/* ===== Chat ===== */
+/* ===== Chat Header ===== */
 .chat-header {
   display: flex;
   align-items: center;
@@ -462,38 +485,23 @@ export default {
   background: var(--bg-secondary);
 }
 
-.chat-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.partner-avatar {
-  font-size: 28px;
-}
+.chat-header-left { display: flex; align-items: center; gap: 12px; }
+.partner-avatar { font-size: 28px; }
 
 .partner-name {
-  font-weight: 600;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-weight: 600; font-size: 15px;
+  display: flex; align-items: center; gap: 6px;
 }
 
 .partner-tag {
-  font-size: 11px;
-  font-weight: 400;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: var(--bg-input);
-  color: var(--text-muted);
+  font-size: 11px; font-weight: 400;
+  padding: 2px 8px; border-radius: 10px;
+  background: var(--bg-input); color: var(--text-muted);
 }
 
-.partner-status {
-  font-size: 12px;
-  color: var(--success);
-}
+.partner-status { font-size: 12px; color: var(--success); }
 
+/* ===== Messages ===== */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -517,21 +525,9 @@ export default {
   animation: slideUp 0.2s ease;
 }
 
-.message.self {
-  align-self: flex-end;
-  align-items: flex-end;
-}
-
-.message.system {
-  align-self: center;
-  max-width: none;
-}
-
-.system-text {
-  color: var(--text-muted);
-  font-size: 12px;
-  padding: 8px 0;
-}
+.message.self { align-self: flex-end; align-items: flex-end; }
+.message.system { align-self: center; max-width: none; }
+.system-text { color: var(--text-muted); font-size: 12px; padding: 8px 0; }
 
 .message-bubble {
   padding: 10px 16px;
@@ -559,15 +555,90 @@ export default {
   padding: 0 4px;
 }
 
+/* ===== Image Messages ===== */
+.message-image {
+  max-width: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.message.self .message-image {
+  border-bottom-right-radius: 4px;
+}
+
+.message:not(.self) .message-image {
+  border-bottom-left-radius: 4px;
+}
+
+.message-image img {
+  width: 100%;
+  display: block;
+  transition: opacity 0.2s;
+}
+
+.message-image:hover img {
+  opacity: 0.9;
+}
+
+/* ===== Image Preview Bar ===== */
+.image-preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+}
+
+.image-preview-thumb {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image-preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-preview-close {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.image-preview-size {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== Chat Input ===== */
 .chat-input {
   display: flex;
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid var(--border);
   background: var(--bg-secondary);
+  align-items: center;
 }
 
-.chat-input input {
+.chat-input input[type="text"],
+.chat-input input:not([type]) {
   flex: 1;
   padding: 12px 16px;
   font-size: 15px;
@@ -579,12 +650,74 @@ export default {
   transition: border-color 0.2s;
 }
 
-.chat-input input:focus {
-  border-color: var(--accent);
+.chat-input input:focus { border-color: var(--accent); }
+.chat-input input::placeholder { color: var(--text-muted); }
+
+.btn-icon {
+  width: 40px; height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
-.chat-input input::placeholder {
-  color: var(--text-muted);
+.btn-icon:hover {
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.btn-send {
+  width: 44px; height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-send:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-send:disabled { opacity: 0.4; cursor: default; }
+
+.send-loading {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Lightbox ===== */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: zoom-out;
+  animation: fadeIn 0.2s ease;
+}
+
+.lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 8px;
 }
 
 /* ===== Buttons ===== */
@@ -603,10 +736,7 @@ export default {
   box-shadow: 0 4px 20px var(--accent-glow);
 }
 
-.btn-primary:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-}
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
 
 .btn-ghost {
   padding: 10px 32px;
@@ -621,10 +751,7 @@ export default {
   display: inline-block;
 }
 
-.btn-ghost:hover {
-  border-color: var(--text-muted);
-  color: var(--text-primary);
-}
+.btn-ghost:hover { border-color: var(--text-muted); color: var(--text-primary); }
 
 .btn-danger-sm {
   padding: 8px 20px;
@@ -637,33 +764,7 @@ export default {
   transition: all 0.2s;
 }
 
-.btn-danger-sm:hover {
-  background: rgba(255, 85, 85, 0.25);
-}
-
-.btn-send {
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.btn-send:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.btn-send:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
+.btn-danger-sm:hover { background: rgba(255, 85, 85, 0.25); }
 
 /* ===== Partner Left ===== */
 .left-screen {
@@ -674,41 +775,22 @@ export default {
   animation: fadeIn 0.3s ease;
 }
 
-.left-content {
-  text-align: center;
-}
-
-.left-emoji {
-  font-size: 56px;
-  margin-bottom: 16px;
-}
+.left-content { text-align: center; }
+.left-emoji { font-size: 56px; margin-bottom: 16px; }
 
 .left-content h2 {
-  font-size: 22px;
-  font-weight: 500;
-  margin-bottom: 24px;
-  color: var(--text-secondary);
+  font-size: 22px; font-weight: 500;
+  margin-bottom: 24px; color: var(--text-secondary);
 }
 
-.left-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
+.left-actions { display: flex; gap: 12px; justify-content: center; }
 
 /* ===== Mobile ===== */
 @media (max-width: 600px) {
-  .chat-header {
-    padding: 10px 14px;
-  }
-  .chat-messages {
-    padding: 14px;
-  }
-  .chat-input {
-    padding: 10px 12px;
-  }
-  .message {
-    max-width: 85%;
-  }
+  .chat-header { padding: 10px 14px; }
+  .chat-messages { padding: 14px; }
+  .chat-input { padding: 10px 12px; }
+  .message { max-width: 85%; }
+  .message-image { max-width: 180px; }
 }
 </style>

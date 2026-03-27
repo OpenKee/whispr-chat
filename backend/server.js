@@ -1,19 +1,67 @@
 const fastify = require('fastify')({ logger: false });
 const path = require('path');
+const fs = require('fs');
+const { customAlphabet } = require('nanoid');
 const { Matcher } = require('./matcher');
 const { saveMessage, getMessages, cleanup } = require('./db');
 
 const PORT = process.env.PORT || 80;
 const matcher = new Matcher();
+const generateImageId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 16);
+const IMAGES_DIR = path.join(__dirname, '..', 'data', 'images');
+
+fs.mkdirSync(IMAGES_DIR, { recursive: true });
+
+// Allowed image types
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 async function start() {
   // WebSocket plugin
   await fastify.register(require('@fastify/websocket'));
 
+  // Multipart support
+  await fastify.register(require('@fastify/multipart'), {
+    limits: { fileSize: MAX_SIZE, files: 1 }
+  });
+
   // Serve frontend build
   await fastify.register(require('@fastify/static'), {
     root: path.join(__dirname, '..', 'frontend', 'dist'),
     prefix: '/'
+  });
+
+  // Serve images
+  await fastify.register(require('@fastify/static'), {
+    root: IMAGES_DIR,
+    prefix: '/images/',
+    decorateReply: false
+  });
+
+  // Upload endpoint
+  fastify.post('/api/upload', async (req, reply) => {
+    const file = await req.file();
+    if (!file) {
+      return reply.code(400).send({ error: '没有文件' });
+    }
+
+    if (!ALLOWED_TYPES.includes(file.mimetype)) {
+      return reply.code(400).send({ error: '不支持的图片格式' });
+    }
+
+    const ext = file.mimetype.split('/')[1] === 'jpeg' ? 'jpg' : file.mimetype.split('/')[1];
+    const filename = generateImageId() + '.' + ext;
+    const filepath = path.join(IMAGES_DIR, filename);
+
+    const buffer = await file.toBuffer();
+
+    if (buffer.length > MAX_SIZE) {
+      return reply.code(400).send({ error: '图片太大，最大 5MB' });
+    }
+
+    await fs.promises.writeFile(filepath, buffer);
+
+    return { url: '/images/' + filename };
   });
 
   // WebSocket endpoint
@@ -39,10 +87,17 @@ async function start() {
             case 'message': {
               const client = matcher.clients.get(ws);
               if (client && client.roomId && data.content?.trim()) {
-                // Save to DB
                 saveMessage(client.roomId, client.nickname, data.content.trim());
-                // Forward to partner
                 matcher.handleMessage(ws, data);
+              }
+              break;
+            }
+
+            case 'image': {
+              const client = matcher.clients.get(ws);
+              if (client && client.roomId && data.url) {
+                saveMessage(client.roomId, client.nickname, '[图片]');
+                matcher.handleMessage(ws, { type: 'message', content: '', imageUrl: data.url });
               }
               break;
             }
@@ -98,9 +153,31 @@ async function start() {
   console.log(`\n🦞 Whispr Chat running at http://0.0.0.0:${PORT}`);
   console.log(`   WebSocket: ws://0.0.0.0:${PORT}/ws\n`);
 
-  // Cleanup old messages every hour
+  // Cleanup old messages and images every hour
   cleanup();
-  setInterval(() => cleanup(), 60 * 60 * 1000);
+  setInterval(() => {
+    cleanup();
+    cleanupOldImages();
+  }, 60 * 60 * 1000);
+}
+
+// Delete images older than 7 days
+function cleanupOldImages() {
+  const maxAge = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  try {
+    const files = fs.readdirSync(IMAGES_DIR);
+    let count = 0;
+    for (const file of files) {
+      const fp = path.join(IMAGES_DIR, file);
+      const stat = fs.statSync(fp);
+      if (now - stat.mtimeMs > maxAge) {
+        fs.unlinkSync(fp);
+        count++;
+      }
+    }
+    if (count > 0) console.log(`[cleanup] Removed ${count} old images`);
+  } catch {}
 }
 
 start().catch(err => {
