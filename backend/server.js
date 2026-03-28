@@ -240,19 +240,13 @@ async function start() {
     addReport(roomId, reporter, partner, reason, snapshot);
     console.log(`[report] room=${roomId} reason=${reason}`);
 
-    // Cumulative auto-ban: 24h → 7d → permanent
+    // Cumulative auto-ban: 2h → 4h → 8h → ... max 24h
     if (partner && getReportCount(partner) >= 3) {
       const prevBans = getBanCount(ip);
-      let duration, label;
-      if (prevBans === 0) {
-        duration = 86400; label = '24h';
-      } else if (prevBans === 1) {
-        duration = 604800; label = '7d';
-      } else {
-        duration = null; label = 'permanent';
-      }
-      banIp(ip, `Auto-ban (${label}): 3 reports in 24h (latest: ${reason})`, duration);
-      console.log(`[auto-ban-${label}] ${partner} (${ip})`);
+      const duration = Math.min(7200 * Math.pow(2, prevBans), 86400);
+      const hours = duration / 3600;
+      banIp(ip, `Auto-ban (${hours}h): 3 reports in 24h (latest: ${reason})`, duration);
+      console.log(`[auto-ban-${hours}h] ${partner} (${ip})`);
     }
 
     return { ok: true };
