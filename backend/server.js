@@ -4,7 +4,7 @@ const fs = require('fs');
 const sharp = require('sharp');
 const { customAlphabet } = require('nanoid');
 const { Matcher } = require('./matcher');
-const { db, saveMessage, getMessages, cleanup, addReport, getReports, getReportCount, banIp, isIpBanned, unbanIp, getBannedIps, getBanCount } = require('./db');
+const { db, saveMessage, getMessages, cleanup, addVisit, getAnalyticsSummary, addReport, getReports, getReportCount, banIp, isIpBanned, unbanIp, getBannedIps, getBanCount } = require('./db');
 const { getCity } = require('./geoip');
 
 const PORT = process.env.PORT || 3847;
@@ -44,6 +44,21 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+function detectSource(referrer = '') {
+  const value = String(referrer || '').toLowerCase();
+  if (!value) return 'direct';
+  if (value.includes('baidu.')) return 'baidu';
+  if (value.includes('bing.')) return 'bing';
+  if (value.includes('google.')) return 'google';
+  if (value.includes('sogou.')) return 'sogou';
+  if (value.includes('so.com') || value.includes('360.cn')) return '360';
+  if (value.includes('sm.cn')) return 'sm';
+  if (value.includes('douyin.')) return 'douyin';
+  if (value.includes('xiaohongshu.') || value.includes('xhslink.')) return 'xiaohongshu';
+  if (value.includes('github.')) return 'github';
+  try { return new URL(referrer).hostname.replace(/^www\./, ''); } catch { return 'other'; }
+}
+
 async function start() {
   // WebSocket plugin
   await fastify.register(require('@fastify/websocket'));
@@ -64,6 +79,21 @@ async function start() {
     root: IMAGES_DIR,
     prefix: '/images/',
     decorateReply: false
+  });
+
+  // Lightweight traffic analytics
+  fastify.addHook('onResponse', async (req, reply) => {
+    try {
+      const pathname = (req.url || '').split('?')[0] || '/';
+      if (req.method !== 'GET') return;
+      if (reply.statusCode >= 400) return;
+      if (pathname.startsWith('/api') || pathname.startsWith('/ws') || pathname.startsWith('/images/') || pathname.includes('.')) return;
+      const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
+      const referrer = req.headers.referer || req.headers.referrer || '';
+      const userAgent = req.headers['user-agent'] || '';
+      const city = await getCity(ip);
+      addVisit(ip, pathname, referrer, detectSource(referrer), city, userAgent);
+    } catch {}
   });
 
   // Upload endpoint
@@ -215,6 +245,12 @@ async function start() {
     waiting: matcher.waitingCount
   }));
 
+  // API: traffic analytics
+  fastify.get('/api/admin/analytics', async (req, reply) => {
+    if (!checkAdmin(req)) return reply.code(401).send({ error: 'unauthorized' });
+    return getAnalyticsSummary(7);
+  });
+
   // Admin auth check
   function checkAdmin(req) {
     const token = req.headers.authorization?.replace('Bearer ', '') || '';
@@ -228,6 +264,7 @@ async function start() {
 
   // API: report
   fastify.post('/api/report', async (req, reply) => {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
     const { roomId, reason } = req.body || {};
     if (!roomId) return reply.code(400).send({ error: 'missing roomId' });
 

@@ -60,6 +60,68 @@ function cleanup() {
   return result.changes;
 }
 
+// ===== Visits / Analytics =====
+db.exec(`
+  CREATE TABLE IF NOT EXISTS visits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip TEXT,
+    path TEXT,
+    referrer TEXT,
+    source TEXT,
+    city TEXT,
+    user_agent TEXT,
+    created_at INTEGER DEFAULT (strftime('%s','now'))
+  )
+`);
+
+const insertVisitStmt = db.prepare(
+  'INSERT INTO visits (ip, path, referrer, source, city, user_agent) VALUES (?, ?, ?, ?, ?, ?)'
+);
+const getAnalyticsSummaryStmt = db.prepare(`
+  SELECT
+    COUNT(*) as pageviews,
+    COUNT(DISTINCT ip) as unique_visitors,
+    COUNT(DISTINCT CASE WHEN created_at >= ? THEN ip END) as visitors_today
+  FROM visits
+`);
+const getTopSourcesStmt = db.prepare(`
+  SELECT source, COUNT(*) as count
+  FROM visits
+  WHERE created_at >= ?
+  GROUP BY source
+  ORDER BY count DESC
+  LIMIT ?
+`);
+const getTopCitiesStmt = db.prepare(`
+  SELECT city, COUNT(DISTINCT ip) as count
+  FROM visits
+  WHERE created_at >= ? AND city IS NOT NULL AND city != ''
+  GROUP BY city
+  ORDER BY count DESC
+  LIMIT ?
+`);
+const getDailyVisitsStmt = db.prepare(`
+  SELECT strftime('%Y-%m-%d', created_at, 'unixepoch', 'localtime') as day, COUNT(DISTINCT ip) as visitors
+  FROM visits
+  WHERE created_at >= ?
+  GROUP BY day
+  ORDER BY day ASC
+`);
+
+function addVisit(ip, pathName, referrer, source, city, userAgent) {
+  return insertVisitStmt.run(ip || '', pathName || '', referrer || '', source || 'direct', city || '', userAgent || '');
+}
+
+function getAnalyticsSummary(days = 7) {
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
+  return {
+    ...getAnalyticsSummaryStmt.get(Math.floor(Date.now() / 1000) - 86400 + 1),
+    topSources: getTopSourcesStmt.all(since, 8),
+    topCities: getTopCitiesStmt.all(since, 10),
+    dailyVisitors: getDailyVisitsStmt.all(since)
+  };
+}
+
 // ===== Reports =====
 db.exec(`
   CREATE TABLE IF NOT EXISTS reports (
@@ -135,6 +197,7 @@ function getBannedIps() { return getBannedStmt.all(); }
 
 module.exports = {
   db, saveMessage, getMessages, cleanup,
+  addVisit, getAnalyticsSummary,
   addReport, getReports, getReportCount,
   banIp, isIpBanned, unbanIp, getBannedIps, getBanCount
 };
