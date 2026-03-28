@@ -267,7 +267,6 @@ async function start() {
 
   // API: report
   fastify.post('/api/report', async (req, reply) => {
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
     const { roomId, reason } = req.body || {};
     if (!roomId) return reply.code(400).send({ error: 'missing roomId' });
 
@@ -275,30 +274,46 @@ async function start() {
     const msgs = getMessages(roomId);
     const snapshot = msgs.slice(-20).map(m => `${m.nickname}: ${m.content || '[image]'}`).join('\n');
 
-    // Find reporter and partner from matcher
-    let reporter = '', partner = '';
+    // Find partner nickname from matcher
+    let partnerNick = '';
     for (const [, client] of matcher.clients) {
       if (client.roomId === roomId) {
-        partner = client.nickname;
-      }
-    }
-    // The reporter is whoever is NOT in the room anymore (they left)
-    for (const [ws2, client] of matcher.clients) {
-      if (client.roomId === roomId) {
-        partner = client.nickname;
+        partnerNick = client.nickname;
+        break;
       }
     }
 
-    addReport(roomId, reporter, partner, reason, snapshot);
-    console.log(`[report] room=${roomId} reason=${reason}`);
+    addReport(roomId, '', partnerNick, reason, snapshot);
+    console.log(`[report] room=${roomId} reason=${reason} target=${partnerNick}`);
 
     // Cumulative auto-ban: 2h → 4h → 8h → ... max 24h
-    if (partner && getReportCount(partner) >= 3) {
-      const prevBans = getBanCount(ip);
-      const duration = Math.min(7200 * Math.pow(2, prevBans), 86400);
-      const hours = duration / 3600;
-      banIp(ip, `Auto-ban (${hours}h): 3 reports in 24h (latest: ${reason})`, duration);
-      console.log(`[auto-ban-${hours}h] ${partner} (${ip})`);
+    if (partnerNick) {
+      const reportCount = getReportCount(partnerNick);
+      if (reportCount >= 3) {
+        // Find partner's IP (they might have already left)
+        let partnerIp = '';
+        for (const [ws2, client] of matcher.clients) {
+          if (client.roomId === roomId) {
+            partnerIp = ws2._socket?.remoteAddress || '';
+            break;
+          }
+        }
+        if (partnerIp) {
+          // How many times has this IP been banned before?
+          const prevBans = (db.prepare('SELECT COUNT(*) as c FROM banned_ips WHERE ip = ?').get(partnerIp) || {}).c || 0;
+          const duration = Math.min(7200 * Math.pow(2, prevBans), 86400);
+          const hours = duration / 3600;
+          banIp(partnerIp, `Auto-ban (${hours}h): ${reportCount} reports (latest: ${reason})`, duration);
+          console.log(`[auto-ban-${hours}h] ${partnerNick} (${partnerIp})`);
+          // Kick banned user
+          for (const [ws2, client] of matcher.clients) {
+            if (ws2._socket?.remoteAddress === partnerIp) {
+              ws2.send(JSON.stringify({ type: 'banned' }));
+              ws2.close();
+            }
+          }
+        }
+      }
     }
 
     return { ok: true };
