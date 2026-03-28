@@ -6,194 +6,270 @@
   <title>Whispr Admin</title>
   <style>
     :root {
-      --bg: #f6f7f9;
-      --panel: #ffffff;
-      --panel-soft: #fafbfc;
-      --line: #e5e7eb;
-      --line-strong: #d7dbe2;
-      --text: #111827;
-      --text-soft: #6b7280;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --card-soft: #f8fafc;
+      --line: #e7ebf1;
+      --text: #0f172a;
+      --muted: #667085;
       --primary: #111827;
       --danger: #dc2626;
       --success: #16a34a;
       --warning: #d97706;
       --violet: #7c3aed;
-      --shadow: 0 10px 30px rgba(17,24,39,.06);
-      --radius-xl: 20px;
-      --radius-lg: 16px;
-      --radius-md: 12px;
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
     body {
-      background: var(--bg);
+      background: linear-gradient(180deg, #f8fafc 0%, #f4f7fb 100%);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans SC", sans-serif;
       -webkit-font-smoothing: antialiased;
-      padding-bottom: calc(24px + env(safe-area-inset-bottom));
     }
-    .shell {
+    .app {
       max-width: 1120px;
       margin: 0 auto;
-      padding: 24px 16px 96px;
+      padding: 16px 12px 92px;
     }
-    .topbar {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 16px;
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
     }
-    .title-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .hero {
+      padding: 18px;
+      margin-bottom: 12px;
+    }
     .eyebrow {
-      color: var(--text-soft);
-      font-size: 12px;
+      color: var(--muted);
+      font-size: 11px;
       letter-spacing: .08em;
       text-transform: uppercase;
-      font-weight: 600;
+      font-weight: 700;
+      margin-bottom: 8px;
     }
     h1 {
-      font-size: clamp(28px, 4vw, 36px);
-      line-height: 1.04;
-      letter-spacing: -.03em;
+      font-size: 28px;
+      line-height: 1.02;
+      letter-spacing: -.04em;
       font-weight: 800;
+      margin-bottom: 8px;
     }
     .sub {
-      color: var(--text-soft);
-      font-size: 14px;
+      color: var(--muted);
+      font-size: 13px;
       line-height: 1.6;
-      max-width: 560px;
     }
-    .top-actions {
+    .hero-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
+      margin-top: 14px;
       flex-wrap: wrap;
     }
-    .btn, .tab, .login button {
+    .btn, .nav-btn, .login button {
       appearance: none;
       border: 0;
-      cursor: pointer;
       font: inherit;
+      cursor: pointer;
       transition: .16s ease;
     }
     .btn {
-      height: 40px;
+      height: 38px;
       padding: 0 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      border: 1px solid var(--line-strong);
-      background: var(--panel);
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: var(--card);
       color: var(--text);
     }
-    .btn:hover, .tab:hover, .login button:hover { transform: translateY(-1px); }
-    .btn-primary {
+    .btn-dark { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .summary {
+      padding: 14px;
+      min-width: 0;
+    }
+    .summary-value {
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      margin-bottom: 6px;
+    }
+    .summary-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .section {
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .section-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .trend-bars {
+      height: 140px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+      align-items: end;
+    }
+    .trend-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .trend-wrap {
+      flex: 1;
+      min-height: 78px;
+      border-radius: 12px;
+      background: #f2f5f8;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      display: flex;
+      align-items: end;
+    }
+    .trend-bar {
+      width: 100%;
+      min-height: 8px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #111827, #374151);
+    }
+    .trend-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .mini-panel {
+      padding: 14px;
+      min-width: 0;
+    }
+    .mini-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .mini-title {
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .mini-list { display: grid; gap: 8px; }
+    .mini-row {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .mini-main { min-width: 0; }
+    .mini-name {
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 5px;
+    }
+    .mini-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #edf1f5;
+      overflow: hidden;
+    }
+    .mini-fill {
+      height: 100%;
+      min-width: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #111827, #4b5563);
+    }
+    .mini-val {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .split-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .split-tabs::-webkit-scrollbar { display: none; }
+    .nav-btn {
+      flex: 0 0 auto;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      background: rgba(255,255,255,.8);
+      border: 1px solid var(--line);
+    }
+    .nav-btn.active {
       background: var(--primary);
       color: #fff;
       border-color: var(--primary);
     }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .stat {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      min-width: 0;
-    }
-    .stat-value {
-      font-size: clamp(24px, 4vw, 32px);
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: -.03em;
-      margin-bottom: 8px;
-    }
-    .stat-label {
-      color: var(--text-soft);
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: rgba(255,255,255,.92);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 8px;
-      margin-bottom: 16px;
-      position: sticky;
-      top: 10px;
-      z-index: 10;
-      backdrop-filter: blur(10px);
-    }
-    .tabs {
-      display: flex;
-      gap: 8px;
-      flex: 1;
-      min-width: 0;
-    }
-    .tab {
-      flex: 0 0 auto;
-      min-width: 0;
-      height: 36px;
-      padding: 0 12px;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--text-soft);
-      font-size: 13px;
-      font-weight: 600;
-      border: 1px solid transparent;
-    }
-    .tab.active {
-      background: var(--primary);
-      color: #fff;
-    }
     .panel { display: none; }
     .panel.active { display: block; }
-    .table-wrap {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      overflow: hidden;
+    .list-card {
+      padding: 14px;
+      margin-bottom: 10px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .list-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
     }
-    th {
-      text-align: left;
+    .list-title {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .list-time {
+      color: var(--muted);
       font-size: 12px;
-      color: var(--text-soft);
-      font-weight: 700;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      background: var(--panel-soft);
+      margin-top: 4px;
     }
-    td {
-      padding: 16px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: top;
-      font-size: 14px;
-      line-height: 1.55;
-    }
-    tr:last-child td { border-bottom: 0; }
-    tr:hover td { background: #fcfcfd; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #4b5563; }
-    .muted { color: var(--text-soft); font-size: 13px; }
     .badge {
       display: inline-flex;
       align-items: center;
       padding: 5px 10px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       white-space: nowrap;
     }
@@ -203,61 +279,24 @@
     .badge-other { background: #f3f4f6; color: #4b5563; }
     .badge-active, .badge-permanent { background: #fef2f2; color: var(--danger); }
     .badge-expired { background: #f0fdf4; color: var(--success); }
-    .snapshot {
-      max-width: 340px;
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      color: #374151;
-      white-space: pre-line;
-    }
-    .row-actions { display: flex; gap: 8px; }
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-      border-color: var(--danger);
-    }
-    .btn-success {
-      background: var(--success);
-      color: #fff;
-      border-color: var(--success);
-    }
-    .mobile-list { display: none; gap: 12px; }
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 14px;
-    }
-    .card-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    .card-title { font-size: 16px; font-weight: 700; line-height: 1.2; }
-    .card-time { color: var(--text-soft); font-size: 12px; margin-top: 4px; }
-    .card-grid {
+    .stack-fields {
       display: grid;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     .field {
-      background: var(--panel-soft);
+      background: var(--card-soft);
       border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 12px;
+      padding: 11px 12px;
     }
     .field-label {
-      color: var(--text-soft);
+      color: var(--muted);
       font-size: 11px;
       font-weight: 700;
-      margin-bottom: 6px;
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .05em;
+      margin-bottom: 6px;
     }
     .field-value {
       font-size: 14px;
@@ -265,205 +304,44 @@
       word-break: break-word;
       white-space: pre-line;
     }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #475569; }
     .card-actions { display: flex; gap: 8px; }
     .card-actions .btn { flex: 1; }
-    .analytics-grid {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .analytics-tight-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 12px;
-    }
-    .analytics-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 18px;
-    }
-    .analytics-label {
-      color: var(--text-soft);
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .analytics-value {
-      font-size: 34px;
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: -.04em;
-      margin-bottom: 8px;
-    }
-    .analytics-sub {
-      color: var(--text-soft);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-    .mini-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .mini-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 16px;
-    }
-    .mini-label {
-      color: var(--text-soft);
-      font-size: 12px;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-    .mini-value {
-      font-size: 28px;
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: -.03em;
-      margin-bottom: 6px;
-    }
-    .chart-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 16px;
-    }
-    .compact-list { display: grid; gap: 8px; }
-    .compact-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: center;
-      padding: 8px 0;
-      border-top: 1px solid var(--line);
-    }
-    .compact-main { min-width: 0; }
-    .compact-name {
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.35;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 6px;
-    }
-    .compact-bar {
-      height: 6px;
-      border-radius: 999px;
-      background: #eef2f7;
-      overflow: hidden;
-    }
-    .compact-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #111827, #4b5563);
-      min-width: 6px;
-    }
-    .compact-value {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-soft);
-      white-space: nowrap;
-    }
-    .chart-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .chart-title { font-size: 14px; font-weight: 700; }
-    .chart-note { font-size: 12px; color: var(--text-soft); }
-    .bars {
-      height: 180px;
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 10px;
-      align-items: end;
-    }
-    .bar-col {
-      display: flex;
-      flex-direction: column;
-      justify-content: end;
-      gap: 8px;
-      min-width: 0;
-    }
-    .bar-wrap {
-      flex: 1;
-      background: linear-gradient(180deg, #f8fafc, #eef2f7);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      min-height: 80px;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: end;
-    }
-    .bar {
-      width: 100%;
-      background: linear-gradient(180deg, #111827, #374151);
-      border-radius: 10px;
-      min-height: 8px;
-    }
-    .bar-label {
-      text-align: center;
-      color: var(--text-soft);
-      font-size: 12px;
-      white-space: nowrap;
-    }
     .empty {
-      background: var(--panel);
-      border: 1px dashed var(--line-strong);
-      border-radius: 18px;
-      color: var(--text-soft);
       text-align: center;
-      padding: 52px 18px;
+      color: var(--muted);
+      padding: 48px 18px;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      background: var(--card);
     }
+    .desktop-table { display: none; }
     .login-wrap {
       min-height: 100vh;
       display: grid;
       place-items: center;
-      padding: 20px;
+      padding: 18px;
     }
     .login {
       width: min(100%, 420px);
-      background: var(--panel);
+      background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 24px;
+      border-radius: 22px;
+      padding: 22px;
       box-shadow: var(--shadow);
-      padding: 24px;
     }
-    .login p {
-      color: var(--text-soft);
-      font-size: 14px;
-      line-height: 1.6;
-      margin: 10px 0 16px;
-    }
+    .login p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 10px 0 14px; }
     .login input {
       width: 100%;
       height: 46px;
       padding: 0 14px;
       border-radius: 12px;
-      border: 1px solid var(--line-strong);
-      font: inherit;
+      border: 1px solid var(--line);
       outline: none;
+      font: inherit;
       margin-bottom: 12px;
-      background: #fff;
-      color: var(--text);
     }
-    .login input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(17,24,39,.08);
-    }
+    .login input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(17,24,39,.08); }
     .login button {
       width: 100%;
       height: 46px;
@@ -473,31 +351,38 @@
       font-size: 14px;
       font-weight: 700;
     }
-    @media (max-width: 920px) {
-      .topbar { flex-direction: column; }
-      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .analytics-grid, .mini-grid, .analytics-tight-grid { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 760px) {
-      .shell { padding: 16px 12px 100px; }
-      .stats {
-        display: flex;
-        gap: 10px;
-        overflow-x: auto;
-        scrollbar-width: none;
+    @media (min-width: 880px) {
+      .app { padding: 24px 16px 32px; }
+      .summary-grid { grid-template-columns: repeat(5, minmax(0,1fr)); }
+      .analytics-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+      .split-tabs { margin-bottom: 16px; }
+      .mobile-feed { display: none; }
+      .desktop-table { display: block; }
+      .desktop-table .table-wrap {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
       }
-      .stats::-webkit-scrollbar { display: none; }
-      .stat { min-width: 126px; flex: 0 0 auto; }
-      .toolbar {
-        position: fixed;
-        left: 12px;
-        right: 12px;
-        bottom: calc(10px + env(safe-area-inset-bottom));
-        top: auto;
+      table { width: 100%; border-collapse: collapse; }
+      th {
+        text-align: left;
+        padding: 14px 16px;
+        background: var(--card-soft);
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
       }
-      .table-wrap { display: none; }
-      .mobile-list { display: grid; }
-      .btn.hide-mobile { display: none; }
+      td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+      tr:last-child td { border-bottom: 0; }
+      .snapshot { max-width: 360px; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-line; }
     }
   </style>
 </head>
@@ -512,20 +397,10 @@
     let stats = {};
     let analytics = { pageviews: 0, unique_visitors: 0, visitors_today: 0, topSources: [], topCities: [], topPaths: [], devices: { mobile: 0, desktop: 0 }, returningVisitors: 0, searchTerms: [], dailyVisitors: [] };
 
-    function startOfToday() {
-      const d = new Date();
-      d.setHours(0, 0, 0, 0);
-      return d.getTime();
-    }
-
     async function api(path, opts = {}) {
       const res = await fetch(API + path, {
         ...opts,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + TOKEN,
-          ...(opts.headers || {})
-        }
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opts.headers || {}) }
       });
       if (res.status === 401) {
         TOKEN = '';
@@ -560,11 +435,7 @@
     }
 
     function reasonBadge(reason) {
-      const map = {
-        spam: ['垃圾广告', 'badge-spam'],
-        abuse: ['骚扰辱骂', 'badge-abuse'],
-        inappropriate: ['不当内容', 'badge-inappropriate']
-      };
+      const map = { spam: ['垃圾广告', 'badge-spam'], abuse: ['骚扰辱骂', 'badge-abuse'], inappropriate: ['不当内容', 'badge-inappropriate'] };
       const [label, cls] = map[reason] || [reason || '其他', 'badge-other'];
       return '<span class="badge ' + cls + '">' + esc(label) + '</span>';
     }
@@ -575,7 +446,7 @@
       if (left <= 0) return '<span class="badge badge-expired">已过期</span>';
       const h = Math.floor(left / 3600);
       const m = Math.floor((left % 3600) / 60);
-      return '<span class="badge badge-active">' + (h > 0 ? h + 'h ' : '') + m + 'm 剩余</span>';
+      return '<span class="badge badge-active">' + (h > 0 ? h + 'h ' : '') + m + 'm</span>';
     }
 
     function formatTime(ts) {
@@ -584,165 +455,93 @@
       return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     }
 
-    function statCard(value, label) {
-      return '<div class="stat"><div class="stat-value">' + value + '</div><div class="stat-label">' + label + '</div></div>';
+    function summaryCard(value, label) {
+      return '<div class="card summary"><div class="summary-value">' + value + '</div><div class="summary-label">' + label + '</div></div>';
     }
 
     function compactList(items, nameKey, valueKey, emptyText) {
-      if (!items || !items.length) return '<div class="muted">' + emptyText + '</div>';
+      if (!items || !items.length) return '<div class="section-note">' + emptyText + '</div>';
       const max = Math.max(...items.map(item => Number(item[valueKey]) || 0), 1);
-      return '<div class="compact-list">' + items.map(item => {
+      return '<div class="mini-list">' + items.slice(0, 6).map(item => {
         const value = Number(item[valueKey]) || 0;
         const width = Math.max(4, Math.round((value / max) * 100));
-        return '<div class="compact-row">' +
-          '<div class="compact-main">' +
-            '<div class="compact-name">' + esc(item[nameKey] || '-') + '</div>' +
-            '<div class="compact-bar"><div class="compact-fill" style="width:' + width + '%"></div></div>' +
-          '</div>' +
-          '<div class="compact-value">' + value + '</div>' +
-        '</div>';
+        return '<div class="mini-row"><div class="mini-main"><div class="mini-name">' + esc(item[nameKey] || '-') + '</div><div class="mini-track"><div class="mini-fill" style="width:' + width + '%"></div></div></div><div class="mini-val">' + value + '</div></div>';
       }).join('') + '</div>';
     }
 
-    function renderLogin() {
-      return '<div class="login-wrap"><div class="login">' +
-        '<div class="eyebrow">Whispr Moderator</div>' +
-        '<h1>Admin</h1>' +
-        '<p>看举报、查封禁、处理在线状态。保持简单，重点信息直接到眼前。</p>' +
-        '<input id="token-input" type="password" placeholder="输入管理 Token" autofocus />' +
-        '<button onclick="login()">进入</button>' +
-      '</div></div>';
-    }
-
-    function renderReports() {
-      if (!reports.length) return '<div class="empty">暂无举报记录</div>';
-      return '<div class="table-wrap"><table><thead><tr><th>时间</th><th>房间</th><th>被举报</th><th>原因</th><th>聊天快照</th><th>操作</th></tr></thead><tbody>' +
-        reports.map(r => '<tr>' +
-          '<td class="muted">' + formatTime(r.created_at) + '</td>' +
-          '<td class="mono">' + esc((r.room_id || '').slice(0, 10)) + '</td>' +
-          '<td>' + esc(r.partner_nickname || '-') + '</td>' +
-          '<td>' + reasonBadge(r.reason) + '</td>' +
-          '<td><div class="snapshot">' + esc(r.messages_snapshot || '-') + '</div></td>' +
-          '<td><div class="row-actions"><button class="btn btn-danger" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁</button></div></td>' +
-        '</tr>').join('') +
-      '</tbody></table></div>' +
-      '<div class="mobile-list">' + reports.map(r => '<article class="card">' +
-        '<div class="card-head"><div><div class="card-title">' + esc(r.partner_nickname || '未知用户') + '</div><div class="card-time">' + formatTime(r.created_at) + '</div></div>' + reasonBadge(r.reason) + '</div>' +
-        '<div class="card-grid">' +
-          '<div class="field"><div class="field-label">房间</div><div class="field-value mono">' + esc(r.room_id || '-') + '</div></div>' +
-          '<div class="field"><div class="field-label">聊天快照</div><div class="field-value">' + esc(r.messages_snapshot || '-') + '</div></div>' +
-        '</div>' +
-        '<div class="card-actions"><button class="btn btn-danger" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁</button></div>' +
-      '</article>').join('') + '</div>';
-    }
-
-    function renderBans() {
-      if (!bans.length) return '<div class="empty">暂无封禁记录</div>';
-      return '<div class="table-wrap"><table><thead><tr><th>IP</th><th>原因</th><th>状态</th><th>封禁时间</th><th>操作</th></tr></thead><tbody>' +
-        bans.map(b => '<tr>' +
-          '<td class="mono">' + esc(b.ip) + '</td>' +
-          '<td>' + esc(b.reason || '-') + '</td>' +
-          '<td>' + banBadge(b) + '</td>' +
-          '<td class="muted">' + formatTime(b.created_at) + '</td>' +
-          '<td><div class="row-actions"><button class="btn btn-success" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></div></td>' +
-        '</tr>').join('') +
-      '</tbody></table></div>' +
-      '<div class="mobile-list">' + bans.map(b => '<article class="card">' +
-        '<div class="card-head"><div><div class="card-title mono">' + esc(b.ip) + '</div><div class="card-time">' + formatTime(b.created_at) + '</div></div>' + banBadge(b) + '</div>' +
-        '<div class="card-grid">' +
-          '<div class="field"><div class="field-label">原因</div><div class="field-value">' + esc(b.reason || '-') + '</div></div>' +
-        '</div>' +
-        '<div class="card-actions"><button class="btn btn-success" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></div>' +
-      '</article>').join('') + '</div>';
-    }
-
-    function renderAnalytics() {
+    function renderOverview() {
       const pageviews = analytics.pageviews || 0;
       const uniqueVisitors = analytics.unique_visitors || 0;
       const visitorsToday = analytics.visitors_today || 0;
       const onlineNow = stats.online || 0;
-      const topSources = analytics.topSources || [];
-      const topCities = analytics.topCities || [];
-      const topPaths = analytics.topPaths || [];
-      const searchTerms = analytics.searchTerms || [];
+      const waiting = stats.waiting || 0;
+      const chatting = Math.max(0, onlineNow - waiting);
       const devices = analytics.devices || { mobile: 0, desktop: 0 };
-      const returningVisitors = analytics.returningVisitors || 0;
       const dailyVisitors = analytics.dailyVisitors || [];
       const maxVisitors = Math.max(...dailyVisitors.map(d => d.visitors || 0), 1);
-      return '<div class="analytics-grid">' +
-        '<div class="analytics-card"><div class="analytics-label">Traffic overview</div><div class="analytics-value">' + uniqueVisitors + '</div><div class="analytics-sub">最近记录到的独立访问用户。今日访问用户 ' + visitorsToday + '，当前在线 ' + onlineNow + '，累计页面浏览 ' + pageviews + '。</div></div>' +
-        '<div class="analytics-card"><div class="analytics-label">Source snapshot</div><div class="analytics-value">' + (topSources[0]?.source || 'direct') + '</div><div class="analytics-sub">当前主来源。可看用户是从百度、Bing、Google、直接访问，还是其他来源进来的。</div></div>' +
-      '</div>' +
-      '<div class="mini-grid">' +
-        '<div class="mini-card"><div class="mini-label">今日用户</div><div class="mini-value">' + visitorsToday + '</div><div class="muted">按独立 IP 统计</div></div>' +
-        '<div class="mini-card"><div class="mini-label">当前在线</div><div class="mini-value">' + onlineNow + '</div><div class="muted">实时在线连接</div></div>' +
-        '<div class="mini-card"><div class="mini-label">回访用户</div><div class="mini-value">' + returningVisitors + '</div><div class="muted">最近 7 天访问超过 1 次</div></div>' +
-      '</div>' +
-      '<div class="mini-grid">' +
-        '<div class="mini-card"><div class="mini-label">移动端</div><div class="mini-value">' + (devices.mobile || 0) + '</div><div class="muted">含 iPhone / Android / Mobile UA</div></div>' +
-        '<div class="mini-card"><div class="mini-label">桌面端</div><div class="mini-value">' + (devices.desktop || 0) + '</div><div class="muted">非移动 UA</div></div>' +
-        '<div class="mini-card"><div class="mini-label">累计浏览</div><div class="mini-value">' + pageviews + '</div><div class="muted">已记录页面访问次数</div></div>' +
-      '</div>' +
-      '<div class="chart-card" style="margin-bottom:12px;"><div class="chart-head"><div><div class="chart-title">最近 7 天访问用户</div><div class="chart-note">每日独立访问用户趋势</div></div><div class="chart-note">7d uniques</div></div><div class="bars">' +
-      dailyVisitors.map(item => '<div class="bar-col"><div class="bar-wrap"><div class="bar" style="height:' + Math.max(8, Math.round(((item.visitors || 0) / maxVisitors) * 100)) + '%"></div></div><div class="bar-label">' + esc((item.day || '').slice(5)) + '<br>' + (item.visitors || 0) + '</div></div>').join('') +
-      '</div></div>' +
-      '<div class="analytics-tight-grid">' +
-        '<div class="chart-card"><div class="chart-head"><div class="chart-title">来源</div><div class="chart-note">最近 7 天</div></div>' + compactList(topSources, 'source', 'count', '暂无数据') + '</div>' +
-        '<div class="chart-card"><div class="chart-head"><div class="chart-title">地域</div><div class="chart-note">最近 7 天</div></div>' + compactList(topCities, 'city', 'count', '暂无数据') + '</div>' +
-        '<div class="chart-card"><div class="chart-head"><div class="chart-title">入口页面</div><div class="chart-note">最近 7 天</div></div>' + compactList(topPaths, 'path', 'count', '暂无数据') + '</div>' +
-        '<div class="chart-card"><div class="chart-head"><div class="chart-title">搜索词</div><div class="chart-note">如果 referrer 带 query</div></div>' + compactList(searchTerms, 'term', 'count', '暂无可提取搜索词') + '</div>' +
-      '</div>';
+      return '<section class="card section">' +
+        '<div class="section-head"><div><div class="section-title">今日先看这里</div><div class="section-note">手机优先，一屏先扫最重要的数</div></div></div>' +
+        '<div class="summary-grid">' +
+          summaryCard(visitorsToday, '今日用户') +
+          summaryCard(onlineNow, '当前在线') +
+          summaryCard(chatting, '聊天中') +
+          summaryCard(uniqueVisitors, '独立访客') +
+          summaryCard(pageviews, '页面浏览') +
+        '</div>' +
+      '</section>' +
+      '<section class="card section">' +
+        '<div class="section-head"><div><div class="section-title">7 天访问趋势</div><div class="section-note">每日独立访问用户</div></div><div class="section-note">回访 ' + (analytics.returningVisitors || 0) + '</div></div>' +
+        '<div class="trend-bars">' +
+          dailyVisitors.map(item => '<div class="trend-col"><div class="trend-wrap"><div class="trend-bar" style="height:' + Math.max(8, Math.round(((item.visitors || 0) / maxVisitors) * 100)) + '%"></div></div><div class="trend-label">' + esc((item.day || '').slice(5)) + '<br>' + (item.visitors || 0) + '</div></div>').join('') +
+        '</div>' +
+      '</section>' +
+      '<section class="analytics-grid">' +
+        '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">来源</div><div class="section-note">7 天</div></div>' + compactList(analytics.topSources || [], 'source', 'count', '暂无数据') + '</div>' +
+        '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">地域</div><div class="section-note">7 天</div></div>' + compactList(analytics.topCities || [], 'city', 'count', '暂无数据') + '</div>' +
+        '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">入口页面</div><div class="section-note">7 天</div></div>' + compactList(analytics.topPaths || [], 'path', 'count', '暂无数据') + '</div>' +
+        '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">搜索词</div><div class="section-note">query 提取</div></div>' + compactList(analytics.searchTerms || [], 'term', 'count', '暂无可提取搜索词') + '</div>' +
+      '</section>' +
+      '<section class="analytics-grid" style="margin-top:12px;">' +
+        '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">设备</div><div class="section-note">7 天</div></div>' + compactList([{ name: '移动端', count: devices.mobile || 0 }, { name: '桌面端', count: devices.desktop || 0 }], 'name', 'count', '暂无数据') + '</div>' +
+        '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">实时状态</div><div class="section-note">当前</div></div>' + compactList([{ name: '在线', count: onlineNow }, { name: '等待中', count: waiting }, { name: '聊天中', count: chatting }], 'name', 'count', '暂无数据') + '</div>' +
+      '</section>';
+    }
+
+    function renderReports() {
+      if (!reports.length) return '<div class="empty">暂无举报记录</div>';
+      const mobile = '<div class="mobile-feed">' + reports.map(r => '<article class="card list-card"><div class="list-head"><div><div class="list-title">' + esc(r.partner_nickname || '未知用户') + '</div><div class="list-time">' + formatTime(r.created_at) + '</div></div>' + reasonBadge(r.reason) + '</div><div class="stack-fields"><div class="field"><div class="field-label">房间</div><div class="field-value mono">' + esc(r.room_id || '-') + '</div></div><div class="field"><div class="field-label">聊天快照</div><div class="field-value">' + esc(r.messages_snapshot || '-') + '</div></div></div><div class="card-actions"><button class="btn btn-danger" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁</button></div></article>').join('') + '</div>';
+      const desktop = '<div class="desktop-table"><div class="table-wrap"><table><thead><tr><th>时间</th><th>房间</th><th>被举报</th><th>原因</th><th>聊天快照</th><th>操作</th></tr></thead><tbody>' + reports.map(r => '<tr><td class="field-value">' + formatTime(r.created_at) + '</td><td class="mono">' + esc((r.room_id || '').slice(0, 10)) + '</td><td>' + esc(r.partner_nickname || '-') + '</td><td>' + reasonBadge(r.reason) + '</td><td><div class="snapshot">' + esc(r.messages_snapshot || '-') + '</div></td><td><button class="btn btn-danger" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁</button></td></tr>').join('') + '</tbody></table></div></div>';
+      return mobile + desktop;
+    }
+
+    function renderBans() {
+      if (!bans.length) return '<div class="empty">暂无封禁记录</div>';
+      const mobile = '<div class="mobile-feed">' + bans.map(b => '<article class="card list-card"><div class="list-head"><div><div class="list-title mono">' + esc(b.ip) + '</div><div class="list-time">' + formatTime(b.created_at) + '</div></div>' + banBadge(b) + '</div><div class="stack-fields"><div class="field"><div class="field-label">原因</div><div class="field-value">' + esc(b.reason || '-') + '</div></div></div><div class="card-actions"><button class="btn btn-success" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></div></article>').join('') + '</div>';
+      const desktop = '<div class="desktop-table"><div class="table-wrap"><table><thead><tr><th>IP</th><th>原因</th><th>状态</th><th>封禁时间</th><th>操作</th></tr></thead><tbody>' + bans.map(b => '<tr><td class="mono">' + esc(b.ip) + '</td><td>' + esc(b.reason || '-') + '</td><td>' + banBadge(b) + '</td><td>' + formatTime(b.created_at) + '</td><td><button class="btn btn-success" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></td></tr>').join('') + '</tbody></table></div></div>';
+      return mobile + desktop;
+    }
+
+    function renderLogin() {
+      return '<div class="login-wrap"><div class="login card"><div class="eyebrow">Whispr Moderator</div><h1>Admin</h1><p>手机先看重点，桌面再看细节。输入 Token 进入后台。</p><input id="token-input" type="password" placeholder="输入管理 Token" autofocus /><button onclick="login()">进入</button></div></div>';
     }
 
     function renderApp() {
-      const online = stats.online || 0;
-      const waiting = stats.waiting || 0;
-      const chatting = Math.max(0, online - waiting);
-      return '<div class="shell">' +
-        '<div class="topbar">' +
-          '<div class="title-wrap">' +
-            '<div class="eyebrow">Whispr Admin</div>' +
-            '<h1>管理台</h1>' +
-            '<div class="sub">举报、封禁、在线状态都放在一个页面里。尽量少装饰，先把事处理掉。</div>' +
-          '</div>' +
-          '<div class="top-actions">' +
-            '<button class="btn" onclick="loadData()">刷新</button>' +
-            '<button class="btn hide-mobile" onclick="logout()">退出</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="stats">' +
-          statCard(online, '在线') +
-          statCard(chatting, '聊天中') +
-          statCard(waiting, '等待中') +
-          statCard(reports.length, '举报') +
-          statCard(bans.length, '封禁') +
-        '</div>' +
-        '<div class="toolbar">' +
-          '<div class="tabs">' +
-            '<button class="tab ' + (tab === 'reports' ? 'active' : '') + '" onclick="switchTab(\'reports\')">举报记录 ' + reports.length + '</button>' +
-            '<button class="tab ' + (tab === 'bans' ? 'active' : '') + '" onclick="switchTab(\'bans\')">封禁列表 ' + bans.length + '</button>' +
-            '<button class="tab ' + (tab === 'analytics' ? 'active' : '') + '" onclick="switchTab(\'analytics\')">Analytics</button>' +
-          '</div>' +
-          '<button class="btn btn-primary" onclick="loadData()">刷新</button>' +
-        '</div>' +
+      return '<div class="app">' +
+        '<section class="card hero"><div class="eyebrow">Whispr Admin</div><h1>巡检面板</h1><div class="sub">先看现在发生了什么，再决定要不要处理举报或封禁。手机一打开就该顺手。</div><div class="hero-actions"><button class="btn btn-dark" onclick="loadData()">刷新</button><button class="btn" onclick="logout()">退出</button></div></section>' +
+        renderOverview() +
+        '<div class="split-tabs"><button class="nav-btn ' + (tab === 'reports' ? 'active' : '') + '" onclick="switchTab(\'reports\')">举报 ' + reports.length + '</button><button class="nav-btn ' + (tab === 'bans' ? 'active' : '') + '" onclick="switchTab(\'bans\')">封禁 ' + bans.length + '</button></div>' +
         '<section class="panel ' + (tab === 'reports' ? 'active' : '') + '">' + renderReports() + '</section>' +
         '<section class="panel ' + (tab === 'bans' ? 'active' : '') + '">' + renderBans() + '</section>' +
-        '<section class="panel ' + (tab === 'analytics' ? 'active' : '') + '">' + renderAnalytics() + '</section>' +
       '</div>';
     }
 
     function render() {
       const app = document.getElementById('app');
       app.innerHTML = TOKEN ? renderApp() : renderLogin();
-      if (!TOKEN) {
-        document.getElementById('token-input').addEventListener('keydown', e => {
-          if (e.key === 'Enter') login();
-        });
-      }
+      if (!TOKEN) document.getElementById('token-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
     }
 
     function switchTab(next) { tab = next; render(); }
-
     function login() {
       const input = document.getElementById('token-input');
       TOKEN = input.value.trim();
@@ -750,13 +549,11 @@
       localStorage.setItem('whispr_admin_token', TOKEN);
       loadData();
     }
-
     function logout() {
       TOKEN = '';
       localStorage.removeItem('whispr_admin_token');
       render();
     }
-
     async function quickBan(nickname) {
       if (!nickname) return;
       const ip = prompt('输入要封禁的 IP（昵称: ' + nickname + '）:');
@@ -765,15 +562,13 @@
       await api('/api/admin/ban', { method: 'POST', body: JSON.stringify({ ip, reason }) });
       loadData();
     }
-
     async function unban(ip) {
       if (!confirm('解封 ' + ip + ' ?')) return;
       await api('/api/admin/unban', { method: 'POST', body: JSON.stringify({ ip }) });
       loadData();
     }
 
-    if (TOKEN) loadData();
-    else render();
+    if (TOKEN) loadData(); else render();
     setInterval(() => { if (TOKEN) loadData(); }, 30000);
   </script>
 </body>
