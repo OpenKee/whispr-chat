@@ -42,41 +42,55 @@ class Matcher {
       clearTimeout(recent.timer);
       this.recentlyDisconnected.delete(clientId);
 
-      // Check if partner is still connected
+      // Find partner: check partnerWs first, then scan by partnerClientId
+      let partnerWs = null;
+      let partnerInfo = null;
+
       if (recent.partnerWs && recent.partnerWs.readyState === 1) {
-        const partnerInfo = this.clients.get(recent.partnerWs);
-        if (partnerInfo) {
-          // Rejoin the same room!
-          const clientInfo = {
-            ws,
-            clientId,
-            nickname: recent.nickname,
-            gender: recent.gender || '',
-            age: recent.age || '',
-            city: recent.city || '',
-            partner: recent.partnerWs,
-            roomId: recent.roomId,
-            joinedAt: Date.now()
-          };
-          this.clients.set(ws, clientInfo);
-          partnerInfo.partner = ws;
-
-          this.send(ws, {
-            type: 'matched',
-            nickname: recent.nickname,
-            partnerNickname: partnerInfo.nickname,
-            partnerGender: partnerInfo.gender || '',
-            partnerAge: partnerInfo.age || '',
-            partnerCity: partnerInfo.city || '',
-            roomId: recent.roomId
-          });
-
-          this.send(recent.partnerWs, {
-            type: 'partner_reconnected'
-          });
-
-          return { matched: true, ...clientInfo };
+        partnerInfo = this.clients.get(recent.partnerWs);
+        if (partnerInfo) partnerWs = recent.partnerWs;
+      }
+      if (!partnerWs && recent.partnerClientId) {
+        for (const [ws2, info] of this.clients) {
+          if (info.clientId === recent.partnerClientId && !info.partner) {
+            partnerWs = ws2;
+            partnerInfo = info;
+            break;
+          }
         }
+      }
+
+      if (partnerWs && partnerInfo) {
+        // Rejoin the same room!
+        const clientInfo = {
+          ws,
+          clientId,
+          nickname: recent.nickname,
+          gender: recent.gender || '',
+          age: recent.age || '',
+          city: recent.city || '',
+          partner: partnerWs,
+          roomId: recent.roomId,
+          joinedAt: Date.now()
+        };
+        this.clients.set(ws, clientInfo);
+        partnerInfo.partner = ws;
+
+        this.send(ws, {
+          type: 'matched',
+          nickname: recent.nickname,
+          partnerNickname: partnerInfo.nickname,
+          partnerGender: partnerInfo.gender || '',
+          partnerAge: partnerInfo.age || '',
+          partnerCity: partnerInfo.city || '',
+          roomId: recent.roomId
+        });
+
+        this.send(partnerWs, {
+          type: 'partner_reconnected'
+        });
+
+        return { matched: true, ...clientInfo };
       }
     }
 
@@ -226,7 +240,7 @@ class Matcher {
     this.waitingQueue = this.waitingQueue.filter(w => w !== ws);
 
     if (client.partner && !isLeave && client.clientId) {
-      // Grace period: give 8 seconds to reconnect
+      // Grace period: give 3 minutes to reconnect
       const partnerWs = client.partner;
       const roomId = client.roomId;
       const nickname = client.nickname;
@@ -235,20 +249,41 @@ class Matcher {
       const age = client.age;
       const city = client.city;
 
+      // Look up partner's clientId for dual reconnection
+      const partnerInfo = this.clients.get(partnerWs);
+      const partnerClientId = partnerInfo?.clientId;
+
       const timer = setTimeout(() => {
         this.recentlyDisconnected.delete(clientId);
+        if (partnerClientId) this.recentlyDisconnected.delete(partnerClientId);
         // Now actually notify partner
-        const partnerInfo = this.clients.get(partnerWs);
-        if (partnerInfo) {
+        if (partnerInfo && partnerInfo.ws.readyState === 1) {
           partnerInfo.partner = null;
           partnerInfo.roomId = null;
           this.send(partnerWs, { type: 'partner_left' });
         }
       }, 180000);
 
+      // Create reconnection entry for this client
       this.recentlyDisconnected.set(clientId, {
-        partnerWs, roomId, nickname, gender, age, city, timer
+        partnerWs, partnerClientId, roomId, nickname, gender, age, city, timer
       });
+
+      // Also create reconnection entry for partner (either can reconnect)
+      if (partnerClientId) {
+        this.recentlyDisconnected.set(partnerClientId, {
+          partnerWs: ws, partnerClientId: clientId,
+          roomId, nickname: partnerInfo.nickname,
+          gender: partnerInfo.gender || '', age: partnerInfo.age || '', city: partnerInfo.city || '',
+          timer
+        });
+      }
+
+      // Clear partner reference (don't notify yet - grace period)
+      if (partnerInfo) {
+        partnerInfo.partner = null;
+        partnerInfo.roomId = null;
+      }
     } else if (client.partner) {
       // Explicit leave or no clientId — notify immediately
       const partnerInfo = this.clients.get(client.partner);
