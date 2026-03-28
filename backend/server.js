@@ -13,6 +13,7 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'whispr-admin-' + require('crypto
 const matcher = new Matcher();
 const generateImageId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 16);
 const IMAGES_DIR = path.join(__dirname, '..', 'data', 'images');
+const ADMIN_HTML = fsSync.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8');
 
 fsSync.mkdirSync(IMAGES_DIR, { recursive: true });
 
@@ -42,6 +43,30 @@ setInterval(() => {
   const now = Date.now();
   for (const [ip, record] of uploadLimiter) {
     if (now - record.start > UPLOAD_WINDOW) uploadLimiter.delete(ip);
+  }
+}, 5 * 60 * 1000);
+
+// Report rate limit: max 5 per IP per minute
+const reportLimiter = new Map();
+const REPORT_LIMIT = 5;
+const REPORT_WINDOW = 60 * 1000;
+
+function checkReportLimit(ip) {
+  const now = Date.now();
+  let record = reportLimiter.get(ip);
+  if (!record || now - record.start > REPORT_WINDOW) {
+    record = { count: 1, start: now };
+    reportLimiter.set(ip, record);
+    return true;
+  }
+  record.count++;
+  return record.count <= REPORT_LIMIT;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of reportLimiter) {
+    if (now - record.start > REPORT_WINDOW) reportLimiter.delete(ip);
   }
 }, 5 * 60 * 1000);
 
@@ -260,10 +285,10 @@ async function start() {
 
   // Admin pages
   fastify.get('/admin', async (req, reply) => {
-    return reply.type('text/html').send(fsSync.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
+    return reply.type('text/html').send(ADMIN_HTML);
   });
   fastify.get('/admin/analytics', async (req, reply) => {
-    return reply.type('text/html').send(fsSync.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
+    return reply.type('text/html').send(ADMIN_HTML);
   });
 
   // API: report (requires clientId to verify reporter identity)
@@ -271,6 +296,7 @@ async function start() {
     const { roomId, reason, clientId } = req.body || {};
     if (!roomId || !clientId) return reply.code(400).send({ error: 'missing roomId or clientId' });
     const reporterIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
+    if (!checkReportLimit(reporterIp)) return reply.code(429).send({ error: 'too many reports' });
 
     // Verify reporter was in this specific room
     let reporterFound = false;

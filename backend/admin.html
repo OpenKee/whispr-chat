@@ -561,6 +561,7 @@
       render();
     }
     async function quickBan(nickname) {
+      nickname = decodeURIComponent(nickname);
       if (!nickname) return;
       const ip = prompt('输入要封禁的 IP（昵称: ' + nickname + '）:');
       if (!ip) return;
@@ -569,6 +570,7 @@
       loadData();
     }
     async function unban(ip) {
+      ip = decodeURIComponent(ip);
       if (!confirm('解封 ' + ip + ' ?')) return;
       await api('/api/admin/unban', { method: 'POST', body: JSON.stringify({ ip }) });
       loadData();

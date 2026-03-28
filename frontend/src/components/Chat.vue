@@ -538,14 +538,13 @@ export default {
       }
       imageFile.value = file
       imageSizeText.value = (file.size / 1024).toFixed(0) + ' KB'
-      const reader = new FileReader()
-      reader.onload = (ev) => { imagePreview.value = ev.target.result }
-      reader.readAsDataURL(file)
+      imagePreview.value = URL.createObjectURL(file)
       e.target.value = ''
     }
 
     function cancelImage() {
       if (uploadXhr) { uploadXhr.abort(); uploadXhr = null }
+      if (imagePreview.value) { URL.revokeObjectURL(imagePreview.value) }
       imageFile.value = null
       imagePreview.value = ''
       imageSizeText.value = ''
@@ -674,18 +673,17 @@ export default {
         startChat()
       }
 
-      const onVisibility = () => {
-        if (!document.hidden && state.value === 'chatting') {
-          updateTitle($t('titleChatting', { name: partnerNickname.value }))
-        }
-      }
       document.addEventListener('visibilitychange', onVisibility)
-      onUnmounted(() => {
-        document.removeEventListener('visibilitychange', onVisibility)
-      })
     })
 
+    function onVisibility() {
+      if (!document.hidden && state.value === 'chatting') {
+        updateTitle($t('titleChatting', { name: partnerNickname.value }))
+      }
+    }
+
     onUnmounted(() => {
+      document.removeEventListener('visibilitychange', onVisibility)
       if (ws) ws.close()
       if (searchTimer) clearInterval(searchTimer)
       clearTimeout(reconnectTimer)
