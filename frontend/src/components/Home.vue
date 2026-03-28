@@ -67,6 +67,8 @@
         <router-link to="/disclaimer">免责声明</router-link>
         <span class="sep">·</span>
         <router-link to="/about">关于我们</router-link>
+        <span class="sep">·</span>
+        <a href="mailto:jiuhe1129@gmail.com">联系我们</a>
       </div>
       <div class="footer-online">
         <span class="online-dot"></span>

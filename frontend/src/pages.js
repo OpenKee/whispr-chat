@@ -93,7 +93,7 @@ export const privacy = `
 <p>本平台仅面向 <span class="highlight">18 周岁及以上</span> 的成年人。我们不会故意收集未成年人的个人信息，如发现未成年人使用本服务将终止其连接。</p>
 
 <h2>8. 联系我们</h2>
-<p>如对隐私政策有任何疑问，请通过 GitHub Issues 联系我们。</p>
+<p>如对隐私政策有任何疑问，请发送邮件至 <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a>。</p>
 
 <p class="last-update">最后更新：2026 年 3 月 28 日</p>
 `
@@ -131,7 +131,7 @@ export const disclaimer = `
 <p>本免责声明的解释和适用以用户所在地法律为准则。如发生争议，双方应友好协商解决。</p>
 
 <h2>7. 举报渠道</h2>
-<p>如发现违法违规行为，请通过 GitHub Issues 向我们举报。我们将在收到举报后尽快处理。</p>
+<p>如发现违法违规行为，请发送邮件至 <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a> 向我们举报。我们将在收到举报后尽快处理。</p>
 
 <p class="last-update">最后更新：2026 年 3 月 28 日</p>
 `
