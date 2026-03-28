@@ -148,12 +148,14 @@ async function start() {
 
             case 'image': {
               const client = matcher.clients.get(ws);
-              if (client && client.roomId && data.url) {
-                saveMessage(client.roomId, client.nickname, '', data.compressed || data.url);
+              const url = data.url || '';
+              const compressed = data.compressed || url;
+              if (client && client.roomId && url.startsWith('/images/') && compressed.startsWith('/images/')) {
+                saveMessage(client.roomId, client.nickname, '', compressed);
                 matcher.handleMessage(ws, {
                   type: 'message',
                   content: '',
-                  imageUrl: data.compressed || data.url
+                  imageUrl: compressed
                 });
               }
               break;

@@ -205,6 +205,7 @@ export default {
 
     let ws = null
     let searchTimer = null
+    let reconnectTimer = null
 
     function getWsUrl() {
       const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -402,6 +403,7 @@ export default {
       searchTimer = setInterval(() => {
         searchingSeconds.value++
         if (searchingSeconds.value > 120) {
+          if (ws) { ws.close(); ws = null }
           stopSearching()
           clearSession()
           router.push('/')
@@ -423,6 +425,7 @@ export default {
       searchTimer = setInterval(() => {
         searchingSeconds.value++
         if (searchingSeconds.value > 120) {
+          if (ws) { ws.close(); ws = null }
           stopSearching()
           clearSession()
           router.push('/')
@@ -442,7 +445,8 @@ export default {
           if (state.value === 'reconnecting') { sendJoin() }
         }
       }
-      setTimeout(() => {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = setTimeout(() => {
         if (state.value === 'reconnecting') {
           addSystemMessage('连接超时，请重新匹配')
           clearSession()
@@ -637,6 +641,7 @@ export default {
     onUnmounted(() => {
       if (ws) ws.close()
       if (searchTimer) clearInterval(searchTimer)
+      clearTimeout(reconnectTimer)
       stopDurationTimer()
       updateTitle('')
     })
