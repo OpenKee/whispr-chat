@@ -266,6 +266,7 @@ export default {
         system: true,
         timestamp: Date.now()
       })
+      if (messages.value.length > 500) messages.value = messages.value.slice(-400)
       scrollToBottom()
     }
 
@@ -320,11 +321,21 @@ export default {
             timestamp: data.timestamp,
             self: false
           })
+          if (messages.value.length > 500) messages.value = messages.value.slice(-400)
           scrollToBottom()
           if (document.hidden) {
             updateTitle('📩 ' + data.nickname + ' 发来消息')
           }
           break
+
+        case 'image': {
+          // Mark image as sent on success
+          const lastMsg = messages.value[messages.value.length - 1]
+          if (lastMsg && lastMsg.self && lastMsg.imageUrl) {
+            // already shown, no action
+          }
+          break
+        }
 
         case 'partner_left':
           endChat('partner_left')
@@ -468,6 +479,7 @@ export default {
       if (!content || state.value !== 'chatting' || !ws) return
       ws.send(JSON.stringify({ type: 'message', content }))
       messages.value.push({ content, nickname: nickname.value, timestamp: Date.now(), self: true })
+      if (messages.value.length > 500) messages.value = messages.value.slice(-400)
       inputText.value = ''
       isTyping = false
       clearTimeout(typingTimer)
@@ -572,6 +584,7 @@ export default {
     }
 
     function leaveChat() {
+      if (!confirm('确定离开聊天吗？')) return
       if (ws) { ws.send(JSON.stringify({ type: 'leave' })) }
       endChat('self_left')
     }

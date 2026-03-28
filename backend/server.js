@@ -138,8 +138,9 @@ async function start() {
 
             case 'message': {
               const client = matcher.clients.get(ws);
-              if (client && client.roomId && data.content?.trim()) {
-                saveMessage(client.roomId, client.nickname, data.content.trim());
+              const content = (data.content || '').trim();
+              if (client && client.roomId && content && content.length <= 500) {
+                saveMessage(client.roomId, client.nickname, content);
                 matcher.handleMessage(ws, data);
               }
               break;
