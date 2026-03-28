@@ -242,7 +242,7 @@ function banIp(ip, reason, durationSeconds) {
 }
 
 function getBanCount(ip) {
-  return db.prepare('SELECT COUNT(*) as count FROM banned_ips WHERE ip = ?').get(ip).count;
+  return db.prepare("SELECT COUNT(*) as count FROM banned_ips WHERE ip = ? AND (expires_at IS NULL OR expires_at > strftime('%s','now'))").get(ip).count;
 }
 
 function isIpBanned(ip) {

@@ -163,8 +163,9 @@ async function start() {
         .toFile(compressedPath);
     } catch (err) {
       console.error('[compress] Failed:', err.message);
-      // Fallback: use original as compressed
-      await fs.copyFile(filepath, compressedPath);
+      // Cleanup both files and return error
+      try { await fs.unlink(filepath); } catch {}
+      return reply.code(400).send({ error: '图片处理失败' });
     }
 
     return { url: '/images/' + filename, compressed: '/images/' + compressedName };

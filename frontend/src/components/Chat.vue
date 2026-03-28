@@ -8,7 +8,7 @@
           <div class="dot dot2"></div>
           <div class="dot dot3"></div>
         </div>
-        <h2>{{ lang === 'zh' ? '正在重新连接...' : 'Reconnecting...' }}</h2>
+        <h2>{{ $t('reconnecting') }}</h2>
       </div>
     </div>
 
@@ -39,9 +39,9 @@
               <span class="partner-tag" v-if="partnerCity"><span v-html="icons.mapPin" class="icon-inline"></span> {{ partnerCity }}</span>
             </div>
             <div v-if="state === 'chatting'" class="partner-status" :class="{ typing: isPartnerTyping }">
-              {{ isPartnerTyping ? (lang === 'zh' ? '正在输入...' : 'typing...') : (lang === 'zh' ? '正在聊天' : 'online') }}
+              {{ isPartnerTyping ? $t('partnerTyping') : $t('partnerOnline') }}
             </div>
-            <div v-else class="partner-status ended">{{ lang === 'zh' ? '已结束' : 'ended' }}</div>
+            <div v-else class="partner-status ended">{{ $t('chatEnded') }}</div>
             <div class="chat-duration" v-if="chatDuration"><span v-html="icons.clock" class="icon-inline"></span> {{ chatDuration }}</div>
           </div>
         </div>
@@ -50,7 +50,7 @@
 
       <div class="chat-messages" ref="messagesEl">
         <div class="messages-system" v-if="messages.length === 0">
-          {{ lang === 'zh' ? '已匹配成功，开始聊天吧' : 'Matched! Say hello 👋' }} <span v-html="icons.sparkle" class="icon-inline"></span>
+          {{ $t('systemMatched') }} <span v-html="icons.sparkle" class="icon-inline"></span>
         </div>
         <div
           v-for="(msg, i) in messages"
@@ -122,7 +122,7 @@
       <!-- Ended actions -->
       <div v-else class="ended-bar">
         <button class="btn-primary" @click="rematch">{{ $t('rematch') }}</button>
-        <router-link to="/" class="btn-ghost">{{ lang === 'zh' ? '回到首页' : 'Home' }}</router-link>
+        <router-link to="/" class="btn-ghost">{{ $t('backToHome') }}</router-link>
         <button class="btn-report" @click="showReport = true" v-if="partnerNickname">{{ $t('report') }}</button>
       </div>
 
@@ -311,7 +311,7 @@ export default {
       switch (data.type) {
         case 'banned':
           state.value = 'ended'
-          addSystemMessage(lang === 'zh' ? '你的账号已被封禁' : 'Your account has been banned')
+          addSystemMessage($t('banned'))
           break
 
         case 'matched':
@@ -371,6 +371,10 @@ export default {
           break
 
         case 'partner_reconnected':
+          // Brief title flash to notify reconnection
+          if (document.hidden) {
+            updateTitle($t('titleChatting', { name: partnerNickname.value }))
+          }
           break
 
         case 'typing':
