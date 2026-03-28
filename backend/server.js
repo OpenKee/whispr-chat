@@ -94,7 +94,7 @@ async function start() {
       const userAgent = req.headers['user-agent'] || '';
       const city = await getCity(ip);
       addVisit(ip, pathname, referrer, detectSource(referrer), city, userAgent);
-    } catch {}
+    } catch (err) { console.error('[analytics]', err.message); }
   });
 
   // Upload endpoint
@@ -293,7 +293,7 @@ async function start() {
     const msgs = getMessages(roomId);
     const snapshot = msgs.slice(-20).map(m => `${m.nickname}: ${m.content || '[image]'}`).join('\n');
 
-    // Find partner
+    // Find partner: check online clients, then recently disconnected
     let partnerNick = '';
     let partnerIp = '';
     for (const [ws2, client] of matcher.clients) {
@@ -302,6 +302,16 @@ async function start() {
         partnerNick = client.nickname;
         partnerIp = ws2._socket?.remoteAddress || '';
         break;
+      }
+    }
+    // If partner is offline, try recently disconnected
+    if (!partnerNick) {
+      for (const [, entry] of matcher.recentlyDisconnected) {
+        if (entry.clientId !== clientId && entry.roomId === roomId) {
+          partnerNick = entry.nickname;
+          // Can't get IP from disconnected client
+          break;
+        }
       }
     }
 
@@ -410,7 +420,7 @@ async function cleanupOldImages() {
       }
     }
     if (count > 0) console.log(`[cleanup] Removed ${count} old images`);
-  } catch {}
+  } catch (err) { console.error('[cleanup-images]', err.message); }
 }
 
 start().catch(err => {

@@ -74,6 +74,9 @@ db.exec(`
   )
 `);
 
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_visits_created ON visits(created_at)'); } catch {}
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_visits_ip ON visits(ip)'); } catch {}
+
 const insertVisitStmt = db.prepare(
   'INSERT INTO visits (ip, path, referrer, source, city, user_agent) VALUES (?, ?, ?, ?, ?, ?)'
 );
