@@ -97,7 +97,7 @@ export default {
       { value: 'female', label: $t('female') }
     ])
 
-    const ages = ['18-25', '26-35', '36-45', '45+']
+    const ages = ['18-23', '23-27', '27+']
 
     function loadProfile() {
       try {
