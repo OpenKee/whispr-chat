@@ -72,10 +72,6 @@
         <router-link to="/disclaimer">免责声明</router-link>
         <router-link to="/about">关于我们</router-link>
       </div>
-      <div class="footer-online">
-        <span class="online-dot"></span>
-        {{ onlineCount }} 人在线
-      </div>
     </div>
   </div>
 </template>
