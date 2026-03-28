@@ -4,7 +4,7 @@ const fs = require('fs');
 const sharp = require('sharp');
 const { customAlphabet } = require('nanoid');
 const { Matcher } = require('./matcher');
-const { db, saveMessage, getMessages, cleanup, addReport, getReports, getReportCount, banIp, isIpBanned, unbanIp, getBannedIps } = require('./db');
+const { db, saveMessage, getMessages, cleanup, addReport, getReports, getReportCount, banIp, isIpBanned, unbanIp, getBannedIps, getBanCount } = require('./db');
 const { getCity } = require('./geoip');
 
 const PORT = process.env.PORT || 3847;
@@ -240,10 +240,19 @@ async function start() {
     addReport(roomId, reporter, partner, reason, snapshot);
     console.log(`[report] room=${roomId} reason=${reason}`);
 
-    // Auto-ban 24h if 3+ reports in 24 hours
+    // Cumulative auto-ban: 24h → 7d → permanent
     if (partner && getReportCount(partner) >= 3) {
-      banIp(ip, `Auto-ban: 3 reports in 24h (latest: ${reason})`, 86400);
-      console.log(`[auto-ban-24h] ${partner} (${ip})`);
+      const prevBans = getBanCount(ip);
+      let duration, label;
+      if (prevBans === 0) {
+        duration = 86400; label = '24h';
+      } else if (prevBans === 1) {
+        duration = 604800; label = '7d';
+      } else {
+        duration = null; label = 'permanent';
+      }
+      banIp(ip, `Auto-ban (${label}): 3 reports in 24h (latest: ${reason})`, duration);
+      console.log(`[auto-ban-${label}] ${partner} (${ip})`);
     }
 
     return { ok: true };

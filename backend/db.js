@@ -118,6 +118,11 @@ function banIp(ip, reason, durationSeconds) {
   const expiresAt = durationSeconds ? Math.floor(Date.now() / 1000) + durationSeconds : null;
   banIpStmt.run(ip, reason, expiresAt);
 }
+
+function getBanCount(ip) {
+  return db.prepare('SELECT COUNT(*) as count FROM banned_ips WHERE ip = ?').get(ip).count;
+}
+
 function isIpBanned(ip) {
   cleanExpiredStmt.run();
   return !!isBannedStmt.get(ip);
@@ -128,5 +133,5 @@ function getBannedIps() { return getBannedStmt.all(); }
 module.exports = {
   db, saveMessage, getMessages, cleanup,
   addReport, getReports, getReportCount,
-  banIp, isIpBanned, unbanIp, getBannedIps
+  banIp, isIpBanned, unbanIp, getBannedIps, getBanCount
 };
