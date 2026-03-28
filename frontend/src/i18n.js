@@ -54,6 +54,16 @@ const t = {
     imageTypeError: '不支持的图片格式，请选择 JPG/PNG/GIF/WEBP',
     imageSending: '发送中...',
     uploadTooFrequent: '上传太频繁，请稍后再试',
+    // Report
+    report: '举报',
+    reportTitle: '举报原因',
+    reportSpam: '垃圾广告',
+    reportAbuse: '骚扰辱骂',
+    reportInappropriate: '不当内容',
+    reportOther: '其他',
+    reportThanks: '已收到举报，感谢反馈',
+    reportCancel: '取消',
+    reportSubmit: '提交举报',
     // Footer
     guide: '使用说明',
     contactUs: '联系我们',
@@ -110,6 +120,16 @@ const t = {
     imageTypeError: 'Unsupported format. Please use JPG/PNG/GIF/WEBP',
     imageSending: 'Sending...',
     uploadTooFrequent: 'Too many uploads, please wait',
+    // Report
+    report: 'Report',
+    reportTitle: 'Report Reason',
+    reportSpam: 'Spam / Ads',
+    reportAbuse: 'Harassment / Abuse',
+    reportInappropriate: 'Inappropriate Content',
+    reportOther: 'Other',
+    reportThanks: 'Report received, thank you',
+    reportCancel: 'Cancel',
+    reportSubmit: 'Submit Report',
     // Footer
     guide: 'Guide',
     contactUs: 'Contact',

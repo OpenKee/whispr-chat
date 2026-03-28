@@ -123,6 +123,23 @@
       <div v-else class="ended-bar">
         <button class="btn-primary" @click="rematch">{{ $t('rematch') }}</button>
         <router-link to="/" class="btn-ghost">{{ lang === 'zh' ? '回到首页' : 'Home' }}</router-link>
+        <button class="btn-report" @click="showReport = true" v-if="partnerNickname">{{ $t('report') }}</button>
+      </div>
+
+      <!-- Report modal -->
+      <div v-if="showReport" class="report-overlay" @click.self="showReport = false">
+        <div class="report-modal">
+          <h3>{{ $t('reportTitle') }}</h3>
+          <div class="report-options">
+            <button v-for="r in reportOptions" :key="r.value" class="report-option"
+              :class="{ active: reportReason === r.value }"
+              @click="reportReason = r.value">{{ r.label }}</button>
+          </div>
+          <div class="report-actions">
+            <button class="btn-ghost" @click="showReport = false">{{ $t('reportCancel') }}</button>
+            <button class="btn-primary" @click="submitReport" :disabled="!reportReason">{{ $t('reportSubmit') }}</button>
+          </div>
+        </div>
       </div>
     </template>
 
@@ -190,6 +207,8 @@ export default {
     const isPartnerTyping = ref(false)
     const chatDuration = ref('')
     const uploadProgress = ref('')
+    const showReport = ref(false)
+    const reportReason = ref('')
     let typingTimer = null
     let partnerTypingTimer = null
     let isTyping = false
@@ -528,6 +547,27 @@ export default {
       uploadProgress.value = ''
     }
 
+    const reportOptions = computed(() => [
+      { value: 'spam', label: $t('reportSpam') },
+      { value: 'abuse', label: $t('reportAbuse') },
+      { value: 'inappropriate', label: $t('reportInappropriate') },
+      { value: 'other', label: $t('reportOther') }
+    ])
+
+    async function submitReport() {
+      if (!reportReason.value || !roomId.value) return
+      try {
+        await fetch('/api/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId: roomId.value, reason: reportReason.value })
+        })
+      } catch {}
+      showReport.value = false
+      reportReason.value = ''
+      addSystemMessage($t('reportThanks'))
+    }
+
     async function uploadAndSendImage() {
       if (!imageFile.value || state.value !== 'chatting' || sending.value) return
       sending.value = true
@@ -655,8 +695,9 @@ export default {
       messagesEl, inputEl, fileInputEl,
       imagePreview, imageSizeText, lightboxUrl, sending, isPartnerTyping,
       chatDuration, uploadProgress,
+      showReport, reportReason, reportOptions,
       startChat, cancelSearch, sendMessage, leaveChat, rematch, onTyping,
-      onFileSelected, cancelImage, previewImage, formatTime,
+      onFileSelected, cancelImage, previewImage, formatTime, submitReport,
       icons: Icons
     }
   }
@@ -956,6 +997,66 @@ export default {
   border-top: 1px solid var(--border);
   background: var(--bg-secondary);
 }
+
+/* ===== Report ===== */
+.btn-report {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+.btn-report:hover { border-color: #e74c3c; color: #e74c3c; }
+
+.report-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.report-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 320px;
+}
+
+.report-modal h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.report-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+.report-option {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.report-option:hover { border-color: var(--text-muted); }
+.report-option.active { border-color: var(--accent); color: var(--accent); background: rgba(99,102,241,0.1); }
+
+.report-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
 /* ===== Lightbox ===== */
 .lightbox {

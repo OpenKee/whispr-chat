@@ -208,6 +208,15 @@ async function start() {
     waiting: matcher.waitingCount
   }));
 
+  // API: report
+  fastify.post('/api/report', async (req, reply) => {
+    const { roomId, reason } = req.body || {};
+    if (!roomId) return reply.code(400).send({ error: 'missing roomId' });
+    const logLine = `[REPORT] ${new Date().toISOString()} room=${roomId} reason=${reason || 'none'}\n`;
+    fs.appendFileSync(path.join(__dirname, '..', 'data', 'reports.log'), logLine);
+    return { ok: true };
+  });
+
   // Fallback to index.html for SPA routing
   fastify.setNotFoundHandler((req, reply) => {
     if (req.url.startsWith('/api') || req.url.startsWith('/ws')) {
