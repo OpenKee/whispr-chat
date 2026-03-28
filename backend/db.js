@@ -179,6 +179,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     room_id TEXT NOT NULL,
     reporter_nickname TEXT,
+    reporter_ip TEXT,
     partner_nickname TEXT,
     partner_ip TEXT,
     reason TEXT,
@@ -187,11 +188,12 @@ db.exec(`
   )
 `);
 
-// Migration: add partner_ip if missing
+// Migration: add partner_ip and reporter_ip if missing
 try { db.exec("ALTER TABLE reports ADD COLUMN partner_ip TEXT"); } catch {}
+try { db.exec("ALTER TABLE reports ADD COLUMN reporter_ip TEXT"); } catch {}
 
 const insertReport = db.prepare(
-  'INSERT INTO reports (room_id, reporter_nickname, partner_nickname, partner_ip, reason, messages_snapshot) VALUES (?, ?, ?, ?, ?, ?)'
+  'INSERT INTO reports (room_id, reporter_nickname, reporter_ip, partner_nickname, partner_ip, reason, messages_snapshot) VALUES (?, ?, ?, ?, ?, ?, ?)'
 );
 
 const getReportsStmt = db.prepare(
@@ -199,11 +201,11 @@ const getReportsStmt = db.prepare(
 );
 
 const getReportCountStmt = db.prepare(
-  "SELECT COUNT(*) as count FROM reports WHERE partner_ip = ? AND partner_ip != '' AND created_at > ?"
+  "SELECT COUNT(DISTINCT reporter_ip) as count FROM reports WHERE partner_ip = ? AND partner_ip != '' AND reporter_ip != '' AND created_at > ?"
 );
 
-function addReport(roomId, reporter, partner, partnerIp, reason, snapshot) {
-  return insertReport.run(roomId, reporter, partner, partnerIp || '', reason, snapshot);
+function addReport(roomId, reporter, reporterIp, partner, partnerIp, reason, snapshot) {
+  return insertReport.run(roomId, reporter, reporterIp || '', partner, partnerIp || '', reason, snapshot);
 }
 
 function getReports(limit = 50) {

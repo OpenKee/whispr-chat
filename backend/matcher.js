@@ -259,6 +259,8 @@ class Matcher {
       // Look up partner's clientId for dual reconnection
       const partnerInfo = this.clients.get(partnerWs);
       const partnerClientId = partnerInfo?.clientId;
+      const myIp = ws._socket?.remoteAddress || '';
+      const partnerIp = partnerWs._socket?.remoteAddress || '';
 
       // Clear any existing timer for this client
       const existing = this.recentlyDisconnected.get(clientId);
@@ -278,9 +280,10 @@ class Matcher {
         }
       }, 180000);
 
-      // Create reconnection entry for this client
+      // Create reconnection entry for this client (store partner's IP for report)
       this.recentlyDisconnected.set(clientId, {
-        partnerWs, partnerClientId, roomId, nickname, gender, age, city, timer
+        partnerWs, partnerClientId, roomId, nickname, gender, age, city, timer,
+        myIp, partnerIp
       });
 
       // Also create reconnection entry for partner (either can reconnect)
@@ -289,7 +292,8 @@ class Matcher {
           partnerWs: ws, partnerClientId: clientId,
           roomId, nickname: partnerInfo.nickname,
           gender: partnerInfo.gender || '', age: partnerInfo.age || '', city: partnerInfo.city || '',
-          timer
+          timer,
+          myIp: partnerIp, partnerIp: myIp
         });
       }
 
