@@ -309,7 +309,11 @@ async function start() {
       for (const [, entry] of matcher.recentlyDisconnected) {
         if (entry.clientId !== clientId && entry.roomId === roomId) {
           partnerNick = entry.nickname;
-          // Can't get IP from disconnected client
+          // Try to get IP from partnerWs if still in clients (they might have been the one who stayed)
+          if (entry.partnerWs) {
+            const pClient = matcher.clients.get(entry.partnerWs);
+            if (pClient) partnerIp = entry.partnerWs._socket?.remoteAddress || '';
+          }
           break;
         }
       }
@@ -317,22 +321,25 @@ async function start() {
 
     if (!partnerNick) return reply.code(400).send({ error: 'partner not found in room' });
 
-    addReport(roomId, clientId, partnerNick, reason, snapshot);
-    console.log(`[report] room=${roomId} reporter=${clientId} target=${partnerNick} reason=${reason}`);
+    addReport(roomId, clientId, partnerNick, partnerIp, reason, snapshot);
+    console.log(`[report] room=${roomId} reporter=${clientId} target=${partnerNick} ip=${partnerIp} reason=${reason}`);
 
     // Cumulative auto-ban: 2h → 4h → 8h → ... max 24h
-    const reportCount = getReportCount(partnerNick);
-    if (reportCount >= 3 && partnerIp) {
-      const prevBans = getBanCount(partnerIp);
-      const duration = Math.min(7200 * Math.pow(2, prevBans), 86400);
-      const hours = duration / 3600;
-      banIp(partnerIp, `Auto-ban (${hours}h): ${reportCount} reports (latest: ${reason})`, duration);
-      console.log(`[auto-ban-${hours}h] ${partnerNick} (${partnerIp})`);
-      // Kick banned user
-      for (const [ws2, client] of matcher.clients) {
-        if (ws2._socket?.remoteAddress === partnerIp) {
-          ws2.send(JSON.stringify({ type: 'banned' }));
-          ws2.close();
+    // Count reports by IP (not nickname, since nickname changes every session)
+    if (partnerIp) {
+      const reportCount = getReportCount(partnerIp);
+      if (reportCount >= 3) {
+        const prevBans = getBanCount(partnerIp);
+        const duration = Math.min(7200 * Math.pow(2, prevBans), 86400);
+        const hours = duration / 3600;
+        banIp(partnerIp, `Auto-ban (${hours}h): ${reportCount} reports (latest: ${reason})`, duration);
+        console.log(`[auto-ban-${hours}h] ${partnerNick} (${partnerIp})`);
+        // Kick banned user
+        for (const [ws2, client] of matcher.clients) {
+          if (ws2._socket?.remoteAddress === partnerIp) {
+            ws2.send(JSON.stringify({ type: 'banned' }));
+            ws2.close();
+          }
         }
       }
     }

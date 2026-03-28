@@ -180,14 +180,18 @@ db.exec(`
     room_id TEXT NOT NULL,
     reporter_nickname TEXT,
     partner_nickname TEXT,
+    partner_ip TEXT,
     reason TEXT,
     messages_snapshot TEXT,
     created_at INTEGER DEFAULT (strftime('%s','now'))
   )
 `);
 
+// Migration: add partner_ip if missing
+try { db.exec("ALTER TABLE reports ADD COLUMN partner_ip TEXT"); } catch {}
+
 const insertReport = db.prepare(
-  'INSERT INTO reports (room_id, reporter_nickname, partner_nickname, reason, messages_snapshot) VALUES (?, ?, ?, ?, ?)'
+  'INSERT INTO reports (room_id, reporter_nickname, partner_nickname, partner_ip, reason, messages_snapshot) VALUES (?, ?, ?, ?, ?, ?)'
 );
 
 const getReportsStmt = db.prepare(
@@ -195,20 +199,20 @@ const getReportsStmt = db.prepare(
 );
 
 const getReportCountStmt = db.prepare(
-  "SELECT COUNT(*) as count FROM reports WHERE partner_nickname = ? AND created_at > ?"
+  "SELECT COUNT(*) as count FROM reports WHERE partner_ip = ? AND partner_ip != '' AND created_at > ?"
 );
 
-function addReport(roomId, reporter, partner, reason, snapshot) {
-  return insertReport.run(roomId, reporter, partner, reason, snapshot);
+function addReport(roomId, reporter, partner, partnerIp, reason, snapshot) {
+  return insertReport.run(roomId, reporter, partner, partnerIp || '', reason, snapshot);
 }
 
 function getReports(limit = 50) {
   return getReportsStmt.all(limit);
 }
 
-function getReportCount(nickname, hours = 24) {
+function getReportCount(ip, hours = 24) {
   const since = Math.floor(Date.now() / 1000) - hours * 3600;
-  return getReportCountStmt.get(nickname, since).count;
+  return getReportCountStmt.get(ip, since).count;
 }
 
 // ===== Banned IPs =====
