@@ -197,8 +197,11 @@
       loadData();
     }
 
-    // Auto refresh every 30s
+    // Initial render
     if (TOKEN) loadData();
+    else render();
+
+    // Auto refresh every 30s
     setInterval(() => { if (TOKEN) loadData(); }, 30000);
   </script>
 </body>
