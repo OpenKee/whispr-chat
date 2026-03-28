@@ -60,6 +60,8 @@
     </div>
     <div class="home-footer">
       <div class="footer-links">
+        <router-link to="/guide">使用说明</router-link>
+        <span class="sep">·</span>
         <router-link to="/terms">服务条款</router-link>
         <span class="sep">·</span>
         <router-link to="/privacy">隐私政策</router-link>
