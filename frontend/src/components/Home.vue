@@ -48,6 +48,15 @@
       </div>
 
       <p class="hint">匹配到陌生人后即可开始对话</p>
+
+      <!-- SEO: Feature highlights -->
+      <div class="features" aria-label="功能特点">
+        <span class="feature-tag">🎲 随机匹配</span>
+        <span class="feature-tag">💬 实时聊天</span>
+        <span class="feature-tag">🖼️ 图片分享</span>
+        <span class="feature-tag">🔒 匿名隐私</span>
+        <span class="feature-tag">📱 无需下载</span>
+      </div>
     </div>
     <div class="home-footer">
       <span class="online-dot"></span>
@@ -284,6 +293,23 @@ export default {
   color: var(--text-muted);
   font-size: 13px;
   margin-top: 8px;
+}
+
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.feature-tag {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
 .home-footer {
