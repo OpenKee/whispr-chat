@@ -391,6 +391,7 @@
   <script>
     let TOKEN = localStorage.getItem('whispr_admin_token') || '';
     const API = '';
+    const route = location.pathname.startsWith('/admin/analytics') ? 'analytics' : 'admin';
     let tab = 'reports';
     let reports = [];
     let bans = [];
@@ -526,12 +527,17 @@
     }
 
     function renderApp() {
+      const heroTitle = route === 'analytics' ? '客流分析' : '巡检面板';
+      const heroSub = route === 'analytics'
+        ? '只看客流、来源、地域、设备和趋势。这里不掺管理操作。'
+        : '先看现在发生了什么，再决定要不要处理举报或封禁。手机一打开就该顺手。';
       return '<div class="app">' +
-        '<section class="card hero"><div class="eyebrow">Whispr Admin</div><h1>巡检面板</h1><div class="sub">先看现在发生了什么，再决定要不要处理举报或封禁。手机一打开就该顺手。</div><div class="hero-actions"><button class="btn btn-dark" onclick="loadData()">刷新</button><button class="btn" onclick="logout()">退出</button></div></section>' +
-        renderOverview() +
-        '<div class="split-tabs"><button class="nav-btn ' + (tab === 'reports' ? 'active' : '') + '" onclick="switchTab(\'reports\')">举报 ' + reports.length + '</button><button class="nav-btn ' + (tab === 'bans' ? 'active' : '') + '" onclick="switchTab(\'bans\')">封禁 ' + bans.length + '</button></div>' +
-        '<section class="panel ' + (tab === 'reports' ? 'active' : '') + '">' + renderReports() + '</section>' +
-        '<section class="panel ' + (tab === 'bans' ? 'active' : '') + '">' + renderBans() + '</section>' +
+        '<section class="card hero"><div class="eyebrow">Whispr Admin</div><h1>' + heroTitle + '</h1><div class="sub">' + heroSub + '</div><div class="hero-actions"><a class="btn ' + (route === 'admin' ? 'btn-dark' : '') + '" href="/admin" style="text-decoration:none;display:inline-flex;align-items:center;">管理台</a><a class="btn ' + (route === 'analytics' ? 'btn-dark' : '') + '" href="/admin/analytics" style="text-decoration:none;display:inline-flex;align-items:center;">Analytics</a><button class="btn" onclick="loadData()">刷新</button><button class="btn" onclick="logout()">退出</button></div></section>' +
+        (route === 'analytics'
+          ? renderOverview()
+          : '<div class="split-tabs"><button class="nav-btn ' + (tab === 'reports' ? 'active' : '') + '" onclick="switchTab(\'reports\')">举报 ' + reports.length + '</button><button class="nav-btn ' + (tab === 'bans' ? 'active' : '') + '" onclick="switchTab(\'bans\')">封禁 ' + bans.length + '</button></div>' +
+            '<section class="panel ' + (tab === 'reports' ? 'active' : '') + '">' + renderReports() + '</section>' +
+            '<section class="panel ' + (tab === 'bans' ? 'active' : '') + '">' + renderBans() + '</section>') +
       '</div>';
     }
 

@@ -87,7 +87,7 @@ async function start() {
       const pathname = (req.url || '').split('?')[0] || '/';
       if (req.method !== 'GET') return;
       if (reply.statusCode >= 400) return;
-      if (pathname === '/admin' || pathname.startsWith('/api') || pathname.startsWith('/ws') || pathname.startsWith('/images/') || pathname.includes('.')) return;
+      if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/ws') || pathname.startsWith('/images/') || pathname.includes('.')) return;
       const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
       const referrer = req.headers.referer || req.headers.referrer || '';
       const userAgent = req.headers['user-agent'] || '';
@@ -257,8 +257,11 @@ async function start() {
     return token === ADMIN_TOKEN;
   }
 
-  // Admin page
+  // Admin pages
   fastify.get('/admin', async (req, reply) => {
+    return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
+  });
+  fastify.get('/admin/analytics', async (req, reply) => {
     return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
   });
 
