@@ -59,8 +59,19 @@
       </div>
     </div>
     <div class="home-footer">
-      <span class="online-dot"></span>
-      {{ onlineCount }} 人在线
+      <div class="footer-links">
+        <router-link to="/terms">服务条款</router-link>
+        <span class="sep">·</span>
+        <router-link to="/privacy">隐私政策</router-link>
+        <span class="sep">·</span>
+        <router-link to="/disclaimer">免责声明</router-link>
+        <span class="sep">·</span>
+        <router-link to="/about">关于我们</router-link>
+      </div>
+      <div class="footer-online">
+        <span class="online-dot"></span>
+        {{ onlineCount }} 人在线
+      </div>
     </div>
   </div>
 </template>
@@ -314,7 +325,30 @@ export default {
 
 .home-footer {
   position: absolute;
-  bottom: 32px;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover { color: var(--text-secondary); }
+.footer-links .sep { color: var(--text-muted); opacity: 0.4; }
+
+.footer-online {
   color: var(--text-muted);
   font-size: 13px;
   display: flex;
