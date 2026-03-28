@@ -117,8 +117,9 @@ const getTopPathsStmt = db.prepare(`
 `);
 const getDeviceBreakdownStmt = db.prepare(`
   SELECT
-    SUM(CASE WHEN user_agent LIKE '%Mobile%' OR user_agent LIKE '%Android%' OR user_agent LIKE '%iPhone%' THEN 1 ELSE 0 END) as mobile,
-    SUM(CASE WHEN user_agent NOT LIKE '%Mobile%' AND user_agent NOT LIKE '%Android%' AND user_agent NOT LIKE '%iPhone%' THEN 1 ELSE 0 END) as desktop
+    SUM(CASE WHEN user_agent LIKE '%Mobile%' OR user_agent LIKE '%Android%' OR user_agent LIKE '%iPhone%' OR user_agent LIKE '%iPad%' OR user_agent LIKE '%iPadOS%' THEN 1 ELSE 0 END) as mobile,
+    SUM(CASE WHEN user_agent LIKE '%Tablet%' OR user_agent LIKE '%Tab%' THEN 1 ELSE 0 END) as tablet,
+    SUM(CASE WHEN user_agent NOT LIKE '%Mobile%' AND user_agent NOT LIKE '%Android%' AND user_agent NOT LIKE '%iPhone%' AND user_agent NOT LIKE '%iPad%' AND user_agent NOT LIKE '%iPadOS%' AND user_agent NOT LIKE '%Tablet%' AND user_agent NOT LIKE '%Tab%' THEN 1 ELSE 0 END) as desktop
   FROM visits
   WHERE created_at >= ?
 `);
@@ -135,8 +136,11 @@ const getSearchTermsStmt = db.prepare(`
   SELECT referrer, COUNT(*) as count
   FROM visits
   WHERE created_at >= ? AND referrer != ''
+    AND (referrer LIKE '%baidu.%' OR referrer LIKE '%google.%' OR referrer LIKE '%bing.%'
+         OR referrer LIKE '%sogou.%' OR referrer LIKE '%so.com%' OR referrer LIKE '%360.cn%'
+         OR referrer LIKE '%sm.cn%')
   ORDER BY count DESC
-  LIMIT 100
+  LIMIT 20
 `);
 
 function addVisit(ip, pathName, referrer, source, city, userAgent) {
@@ -233,9 +237,9 @@ function getBanCount(ip) {
 }
 
 function isIpBanned(ip) {
-  cleanExpiredStmt.run();
   return !!isBannedStmt.get(ip);
 }
+function cleanExpiredBans() { cleanExpiredStmt.run(); }
 function unbanIp(ip) { unbanIpStmt.run(ip); }
 function getBannedIps() { return getBannedStmt.all(); }
 
@@ -243,5 +247,5 @@ module.exports = {
   db, saveMessage, getMessages, cleanup,
   addVisit, getAnalyticsSummary,
   addReport, getReports, getReportCount,
-  banIp, isIpBanned, unbanIp, getBannedIps, getBanCount
+  banIp, isIpBanned, unbanIp, getBannedIps, getBanCount, cleanExpiredBans
 };

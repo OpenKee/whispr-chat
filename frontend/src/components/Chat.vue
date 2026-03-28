@@ -565,7 +565,7 @@ export default {
         await fetch('/api/report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomId: roomId.value, reason: reportReason.value })
+          body: JSON.stringify({ roomId: roomId.value, reason: reportReason.value, clientId })
         })
       } catch {}
       showReport.value = false

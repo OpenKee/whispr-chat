@@ -503,7 +503,7 @@
         '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">搜索词</div><div class="section-note">query 提取</div></div>' + compactList(analytics.searchTerms || [], 'term', 'count', '暂无可提取搜索词') + '</div>' +
       '</section>' +
       '<section class="analytics-grid" style="margin-top:12px;">' +
-        '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">设备</div><div class="section-note">7 天</div></div>' + compactList([{ name: '移动端', count: devices.mobile || 0 }, { name: '桌面端', count: devices.desktop || 0 }], 'name', 'count', '暂无数据') + '</div>' +
+        '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">设备</div><div class="section-note">7 天</div></div>' + compactList([{ name: '移动端', count: devices.mobile || 0 }, { name: '桌面端', count: devices.desktop || 0 }, { name: '平板', count: devices.tablet || 0 }], 'name', 'count', '暂无数据') + '</div>' +
         '<div class="card mini-panel"><div class="mini-head"><div class="mini-title">实时状态</div><div class="section-note">当前</div></div>' + compactList([{ name: '在线', count: onlineNow }, { name: '等待中', count: waiting }, { name: '聊天中', count: chatting }], 'name', 'count', '暂无数据') + '</div>' +
       '</section>';
     }

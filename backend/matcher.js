@@ -41,6 +41,13 @@ class Matcher {
       const recent = this.recentlyDisconnected.get(clientId);
       clearTimeout(recent.timer);
       this.recentlyDisconnected.delete(clientId);
+      // Also clean up partner's entry
+      if (recent.partnerClientId) {
+        const partnerRecent = this.recentlyDisconnected.get(recent.partnerClientId);
+        if (partnerRecent?.timer === recent.timer) {
+          this.recentlyDisconnected.delete(recent.partnerClientId);
+        }
+      }
 
       // Find partner: check partnerWs first, then scan by partnerClientId
       let partnerWs = null;
@@ -253,6 +260,12 @@ class Matcher {
       const partnerInfo = this.clients.get(partnerWs);
       const partnerClientId = partnerInfo?.clientId;
 
+      // Clear any existing timer for this client
+      const existing = this.recentlyDisconnected.get(clientId);
+      if (existing?.timer) clearTimeout(existing.timer);
+      const existingPartner = partnerClientId ? this.recentlyDisconnected.get(partnerClientId) : null;
+      if (existingPartner?.timer) clearTimeout(existingPartner.timer);
+
       const timer = setTimeout(() => {
         this.recentlyDisconnected.delete(clientId);
         if (partnerClientId) this.recentlyDisconnected.delete(partnerClientId);
@@ -271,8 +284,7 @@ class Matcher {
       });
 
       // Also create reconnection entry for partner (either can reconnect)
-      // Don't overwrite if partner already has an entry (simultaneous disconnect)
-      if (partnerClientId && !this.recentlyDisconnected.has(partnerClientId)) {
+      if (partnerClientId) {
         this.recentlyDisconnected.set(partnerClientId, {
           partnerWs: ws, partnerClientId: clientId,
           roomId, nickname: partnerInfo.nickname,

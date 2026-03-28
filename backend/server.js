@@ -1,10 +1,11 @@
 const fastify = require('fastify')({ logger: false });
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
+const fsSync = require('fs');
 const sharp = require('sharp');
 const { customAlphabet } = require('nanoid');
 const { Matcher } = require('./matcher');
-const { db, saveMessage, getMessages, cleanup, addVisit, getAnalyticsSummary, addReport, getReports, getReportCount, banIp, isIpBanned, unbanIp, getBannedIps, getBanCount } = require('./db');
+const { saveMessage, getMessages, cleanup, addVisit, getAnalyticsSummary, addReport, getReports, getReportCount, banIp, isIpBanned, unbanIp, getBannedIps, getBanCount, cleanExpiredBans } = require('./db');
 const { getCity } = require('./geoip');
 
 const PORT = process.env.PORT || 3847;
@@ -13,7 +14,7 @@ const matcher = new Matcher();
 const generateImageId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 16);
 const IMAGES_DIR = path.join(__dirname, '..', 'data', 'images');
 
-fs.mkdirSync(IMAGES_DIR, { recursive: true });
+fsSync.mkdirSync(IMAGES_DIR, { recursive: true });
 
 // Allowed image types
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -127,7 +128,7 @@ async function start() {
     }
 
     // Save original
-    await fs.promises.writeFile(filepath, buffer);
+    await fs.writeFile(filepath, buffer);
 
     // Generate compressed version (max 1280px wide, quality 75, webp)
     try {
@@ -138,7 +139,7 @@ async function start() {
     } catch (err) {
       console.error('[compress] Failed:', err.message);
       // Fallback: use original as compressed
-      await fs.promises.copyFile(filepath, compressedPath);
+      await fs.copyFile(filepath, compressedPath);
     }
 
     return { url: '/images/' + filename, compressed: '/images/' + compressedName };
@@ -259,59 +260,69 @@ async function start() {
 
   // Admin pages
   fastify.get('/admin', async (req, reply) => {
-    return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
+    return reply.type('text/html').send(fsSync.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
   });
   fastify.get('/admin/analytics', async (req, reply) => {
-    return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
+    return reply.type('text/html').send(fsSync.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
   });
 
-  // API: report
+  // API: report (requires clientId to verify reporter identity)
   fastify.post('/api/report', async (req, reply) => {
-    const { roomId, reason } = req.body || {};
-    if (!roomId) return reply.code(400).send({ error: 'missing roomId' });
+    const { roomId, reason, clientId } = req.body || {};
+    if (!roomId || !clientId) return reply.code(400).send({ error: 'missing roomId or clientId' });
+
+    // Verify reporter was in this room — find them by clientId
+    let reporterClient = null;
+    for (const [, client] of matcher.clients) {
+      if (client.clientId === clientId) { reporterClient = client; break; }
+    }
+    // Also check recently disconnected (they might have left the chat)
+    if (!reporterClient) {
+      for (const [, entry] of matcher.recentlyDisconnected) {
+        if (entry.clientId === clientId && entry.roomId === roomId) {
+          reporterClient = { roomId, partnerNick: '', partnerWs: entry.partnerWs };
+          break;
+        }
+      }
+    }
+    if (!reporterClient) {
+      return reply.code(403).send({ error: 'not found in any room' });
+    }
 
     // Get messages snapshot
     const msgs = getMessages(roomId);
     const snapshot = msgs.slice(-20).map(m => `${m.nickname}: ${m.content || '[image]'}`).join('\n');
 
-    // Find partner nickname from matcher
+    // Find partner
     let partnerNick = '';
-    for (const [, client] of matcher.clients) {
+    let partnerIp = '';
+    for (const [ws2, client] of matcher.clients) {
+      if (client.clientId === clientId) continue; // skip self
       if (client.roomId === roomId) {
         partnerNick = client.nickname;
+        partnerIp = ws2._socket?.remoteAddress || '';
         break;
       }
     }
 
-    addReport(roomId, '', partnerNick, reason, snapshot);
-    console.log(`[report] room=${roomId} reason=${reason} target=${partnerNick}`);
+    if (!partnerNick) return reply.code(400).send({ error: 'partner not found in room' });
+
+    addReport(roomId, clientId, partnerNick, reason, snapshot);
+    console.log(`[report] room=${roomId} reporter=${clientId} target=${partnerNick} reason=${reason}`);
 
     // Cumulative auto-ban: 2h → 4h → 8h → ... max 24h
-    if (partnerNick) {
-      const reportCount = getReportCount(partnerNick);
-      if (reportCount >= 3) {
-        // Find partner's IP (they might have already left)
-        let partnerIp = '';
-        for (const [ws2, client] of matcher.clients) {
-          if (client.roomId === roomId) {
-            partnerIp = ws2._socket?.remoteAddress || '';
-            break;
-          }
-        }
-        if (partnerIp) {
-          // How many times has this IP been banned before?
-          const prevBans = (db.prepare('SELECT COUNT(*) as c FROM banned_ips WHERE ip = ?').get(partnerIp) || {}).c || 0;
-          const duration = Math.min(7200 * Math.pow(2, prevBans), 86400);
-          const hours = duration / 3600;
-          banIp(partnerIp, `Auto-ban (${hours}h): ${reportCount} reports (latest: ${reason})`, duration);
-          console.log(`[auto-ban-${hours}h] ${partnerNick} (${partnerIp})`);
-          // Kick banned user
-          for (const [ws2, client] of matcher.clients) {
-            if (ws2._socket?.remoteAddress === partnerIp) {
-              ws2.send(JSON.stringify({ type: 'banned' }));
-              ws2.close();
-            }
-          }
+    const reportCount = getReportCount(partnerNick);
+    if (reportCount >= 3 && partnerIp) {
+      const prevBans = getBanCount(partnerIp);
+      const duration = Math.min(7200 * Math.pow(2, prevBans), 86400);
+      const hours = duration / 3600;
+      banIp(partnerIp, `Auto-ban (${hours}h): ${reportCount} reports (latest: ${reason})`, duration);
+      console.log(`[auto-ban-${hours}h] ${partnerNick} (${partnerIp})`);
+      // Kick banned user
+      for (const [ws2, client] of matcher.clients) {
+        if (ws2._socket?.remoteAddress === partnerIp) {
+          ws2.send(JSON.stringify({ type: 'banned' }));
+          ws2.close();
         }
       }
     }
@@ -373,26 +384,28 @@ async function start() {
   console.log(`   Admin: http://0.0.0.0:${PORT}/admin`);
   console.log(`   Admin Token: ${ADMIN_TOKEN}\n`);
 
-  // Cleanup old messages and images every hour
+  // Cleanup old data every hour
   cleanup();
+  cleanExpiredBans();
   setInterval(() => {
     cleanup();
     cleanupOldImages();
+    cleanExpiredBans();
   }, 60 * 60 * 1000);
 }
 
 // Delete images older than 7 days
-function cleanupOldImages() {
+async function cleanupOldImages() {
   const maxAge = 7 * 24 * 60 * 60 * 1000;
   const now = Date.now();
   try {
-    const files = fs.readdirSync(IMAGES_DIR);
+    const files = await fs.readdir(IMAGES_DIR);
     let count = 0;
     for (const file of files) {
       const fp = path.join(IMAGES_DIR, file);
-      const stat = fs.statSync(fp);
+      const stat = await fs.stat(fp);
       if (now - stat.mtimeMs > maxAge) {
-        fs.unlinkSync(fp);
+        await fs.unlink(fp);
         count++;
       }
     }
