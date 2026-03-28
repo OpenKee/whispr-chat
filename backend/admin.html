@@ -1,258 +1,304 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Whispr Admin</title>
   <style>
     :root {
-      --bg: #09090d;
-      --panel: #111118;
-      --panel-2: #151520;
-      --line: #232333;
-      --soft: #7e8194;
-      --text: #ececf3;
-      --accent: #6366f1;
-      --accent-2: #7c7ff8;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --shadow: 0 20px 50px rgba(0,0,0,.28);
-      --radius: 18px;
+      --bg: #f5f1e8;
+      --paper: #fbf8f1;
+      --card: #fffdf8;
+      --ink: #1d1b18;
+      --muted: #756f66;
+      --line: #d8cfbf;
+      --line-soft: #e8e0d3;
+      --accent: #b2462d;
+      --accent-2: #2f5a4e;
+      --danger: #9e2e20;
+      --success: #2f6a44;
+      --warning: #9a6a17;
+      --shadow: 0 18px 40px rgba(76, 55, 24, 0.08);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
+      font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
+      color: var(--ink);
       background:
-        radial-gradient(circle at top left, rgba(99,102,241,.12), transparent 32%),
-        radial-gradient(circle at top right, rgba(239,68,68,.08), transparent 28%),
-        linear-gradient(180deg, #0a0a0f 0%, #09090d 100%);
-      padding-bottom: calc(28px + env(safe-area-inset-bottom));
+        radial-gradient(circle at top left, rgba(178,70,45,.10), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(47,90,78,.10), transparent 30%),
+        var(--bg);
     }
     body::before {
       content: "";
       position: fixed;
       inset: 0;
       pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
-      background-size: 24px 24px;
-      mask-image: radial-gradient(circle at center, black, transparent 85%);
-      opacity: .3;
+      background-image: linear-gradient(rgba(90, 74, 51, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(90, 74, 51, 0.03) 1px, transparent 1px);
+      background-size: 22px 22px;
+      opacity: .35;
+      mask-image: radial-gradient(circle at center, black, transparent 86%);
     }
     .shell {
       max-width: 1180px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 28px 20px 120px;
       position: relative;
       z-index: 1;
     }
-    .hero {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 20px;
+    .masthead {
+      display: grid;
+      grid-template-columns: 1.25fr .9fr;
+      gap: 16px;
       margin-bottom: 18px;
-      padding: 18px 2px 8px;
     }
-    .hero-title {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .hero, .side-note, .stats-strip, .toolbar, .table-wrap, .card {
+      background: rgba(255,253,248,.88);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      border-radius: 30px;
+      padding: 24px 24px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      top: -40px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(178,70,45,.12), transparent 65%);
+      pointer-events: none;
     }
     .eyebrow {
-      color: var(--soft);
-      font-size: 11px;
-      letter-spacing: .18em;
+      font: 600 11px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: .16em;
       text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
     }
     h1 {
-      font-size: clamp(28px, 5vw, 42px);
-      line-height: .95;
+      font-size: clamp(34px, 6vw, 54px);
+      line-height: .94;
       letter-spacing: -.04em;
-      font-weight: 800;
+      font-weight: 700;
+      margin-bottom: 12px;
     }
-    h1 span { color: var(--accent-2); }
-    .hero-sub {
-      color: var(--soft);
+    .hero p, .side-note p, .login p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .hero-actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .side-note {
+      border-radius: var(--radius-xl);
+      padding: 22px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .side-box {
+      border-top: 1px dashed var(--line);
+      padding-top: 14px;
+    }
+    .side-box strong {
+      display: block;
       font-size: 13px;
-      max-width: 520px;
-      line-height: 1.55;
+      margin-bottom: 6px;
+      color: var(--accent-2);
     }
-    .hero-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .ghost-btn, .refresh-btn, .tab, .btn, .login button {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      font: inherit;
-      transition: .2s ease;
-    }
-    .refresh-btn, .ghost-btn {
-      background: rgba(255,255,255,.03);
-      border: 1px solid var(--line);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-    }
-    .refresh-btn:hover, .ghost-btn:hover { border-color: #35354b; transform: translateY(-1px); }
-    .stats {
+    .stats-strip {
+      border-radius: 24px;
+      padding: 10px;
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 10px;
+      margin-bottom: 16px;
     }
     .stat {
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 16px 16px 14px;
-      box-shadow: var(--shadow);
+      border-radius: 18px;
+      border: 1px solid var(--line-soft);
+      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(245,239,228,.65));
+      padding: 16px 14px;
       min-width: 0;
     }
     .stat-value {
-      font-size: clamp(22px, 3.6vw, 30px);
-      font-weight: 800;
-      letter-spacing: -.04em;
-      color: #fff;
-      margin-bottom: 6px;
+      font-size: clamp(24px, 4vw, 32px);
+      line-height: 1;
+      margin-bottom: 8px;
+      font-weight: 700;
     }
-    .stat-label { color: var(--soft); font-size: 12px; }
-    .tabs {
+    .stat-label {
+      color: var(--muted);
+      font: 600 11px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .toolbar {
+      border-radius: 22px;
+      padding: 10px;
       display: flex;
       gap: 10px;
-      margin-bottom: 18px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
       position: sticky;
       top: 10px;
       z-index: 5;
-      padding: 8px;
-      border: 1px solid rgba(255,255,255,.05);
-      background: rgba(12,12,18,.78);
-      backdrop-filter: blur(18px);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .tab-group { display: flex; gap: 10px; flex: 1; }
+    .tab, .btn, .ghost, .login button {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      font: 600 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      transition: .18s ease;
     }
     .tab {
       flex: 1;
-      min-width: 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      color: var(--muted);
       background: transparent;
       border: 1px solid transparent;
-      color: var(--soft);
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 700;
     }
     .tab.active {
+      background: var(--ink);
       color: #fff;
-      background: linear-gradient(135deg, var(--accent), #4f46e5);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
     }
+    .ghost {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .ghost:hover, .tab:hover, .btn:hover, .login button:hover { transform: translateY(-1px); }
     .panel { display: none; }
     .panel.active { display: block; }
-    .desktop-table {
-      background: rgba(255,255,255,.025);
-      border: 1px solid var(--line);
-      border-radius: 20px;
+    .table-wrap {
+      border-radius: 26px;
       overflow: hidden;
-      box-shadow: var(--shadow);
     }
-    table { width: 100%; border-collapse: collapse; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: transparent;
+    }
     th {
       text-align: left;
-      font-size: 11px;
+      font: 700 11px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--muted);
       letter-spacing: .12em;
       text-transform: uppercase;
-      color: #6d7186;
       padding: 16px 18px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,.02);
+      background: rgba(244,237,225,.55);
     }
     td {
-      padding: 16px 18px;
-      font-size: 14px;
-      border-bottom: 1px solid rgba(255,255,255,.04);
+      padding: 18px;
+      border-bottom: 1px solid var(--line-soft);
       vertical-align: top;
+      font-size: 14px;
+      line-height: 1.55;
     }
     tr:last-child td { border-bottom: 0; }
-    tr:hover td { background: rgba(255,255,255,.018); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #c7cbdb; }
+    tr:hover td { background: rgba(255,250,243,.7); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; word-break: break-all; }
+    .muted { color: var(--muted); }
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 10px;
+      padding: 6px 10px;
       border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .02em;
+      font: 700 11px/1.1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: .03em;
       white-space: nowrap;
     }
-    .badge-spam { background: rgba(245,158,11,.12); color: #fbbf24; }
-    .badge-abuse { background: rgba(239,68,68,.12); color: #f87171; }
-    .badge-inappropriate { background: rgba(139,92,246,.12); color: #a78bfa; }
-    .badge-other { background: rgba(107,114,128,.16); color: #c0c6d4; }
-    .badge-permanent, .badge-active { background: rgba(239,68,68,.14); color: #f87171; }
-    .badge-expired { background: rgba(34,197,94,.14); color: #4ade80; }
-    .btn {
-      padding: 9px 14px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .btn-ban { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .btn-unban { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .btn:hover { transform: translateY(-1px); filter: brightness(1.04); }
-    .msg-snapshot {
-      font-size: 12px;
-      color: #9aa0b6;
-      line-height: 1.55;
-      white-space: pre-line;
+    .badge-spam { background: rgba(154,106,23,.10); color: var(--warning); }
+    .badge-abuse { background: rgba(158,46,32,.10); color: var(--danger); }
+    .badge-inappropriate { background: rgba(80,78,150,.10); color: #5753b5; }
+    .badge-other { background: rgba(117,111,102,.12); color: #605a52; }
+    .badge-active, .badge-permanent { background: rgba(158,46,32,.10); color: var(--danger); }
+    .badge-expired { background: rgba(47,106,68,.10); color: var(--success); }
+    .snapshot {
       max-width: 320px;
-      max-height: 70px;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
       overflow: hidden;
+      color: #514a42;
     }
-    .time { color: var(--soft); font-size: 12px; white-space: nowrap; }
-    .empty {
-      border: 1px dashed var(--line);
-      border-radius: 20px;
-      padding: 56px 20px;
-      text-align: center;
-      color: #70758b;
-      background: rgba(255,255,255,.018);
+    .btn {
+      padding: 11px 14px;
+      border-radius: 14px;
+      color: #fff;
+      white-space: nowrap;
     }
-    .mobile-cards { display: none; gap: 12px; }
+    .btn-danger { background: var(--danger); }
+    .btn-success { background: var(--success); }
+    .btn-secondary { background: var(--ink); }
+    .mobile-list { display: none; gap: 12px; }
     .card {
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.018));
-      border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 22px;
       padding: 16px;
-      box-shadow: var(--shadow);
     }
-    .card-head, .card-row, .card-actions {
+    .card-head {
       display: flex;
-      align-items: flex-start;
       justify-content: space-between;
-      gap: 10px;
-    }
-    .card-head { margin-bottom: 12px; }
-    .card-title { font-weight: 700; font-size: 15px; }
-    .card-sub { color: var(--soft); font-size: 12px; margin-top: 4px; }
-    .card-grid {
-      display: grid;
-      gap: 10px;
+      gap: 12px;
+      align-items: flex-start;
       margin-bottom: 12px;
     }
-    .kv {
-      padding: 11px 12px;
-      background: rgba(255,255,255,.028);
-      border: 1px solid rgba(255,255,255,.04);
-      border-radius: 14px;
+    .card-title { font-size: 18px; line-height: 1.15; }
+    .card-meta { font: 600 12px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--muted); margin-top: 6px; }
+    .kv-grid {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
     }
-    .kv-label { color: var(--soft); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
-    .kv-value { font-size: 13px; line-height: 1.55; color: var(--text); word-break: break-word; }
+    .kv {
+      padding: 12px 13px;
+      border: 1px solid var(--line-soft);
+      border-radius: 16px;
+      background: rgba(255,255,255,.42);
+    }
+    .kv-label {
+      color: var(--muted);
+      font: 700 10px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    .kv-value { font-size: 14px; line-height: 1.55; word-break: break-word; }
+    .card-actions { display: flex; gap: 10px; }
+    .card-actions .btn { flex: 1; }
+    .empty {
+      padding: 56px 20px;
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 24px;
+      color: var(--muted);
+      background: rgba(255,253,248,.7);
+    }
     .login-wrap {
       min-height: 100vh;
       display: grid;
@@ -260,74 +306,65 @@
       padding: 24px;
     }
     .login {
-      width: min(100%, 420px);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      width: min(100%, 460px);
+      background: rgba(255,253,248,.92);
       border: 1px solid var(--line);
-      border-radius: 28px;
-      padding: 28px;
       box-shadow: var(--shadow);
+      border-radius: 32px;
+      padding: 28px;
     }
-    .login .eyebrow { margin-bottom: 10px; }
     .login h2 {
-      font-size: 32px;
+      font-size: 42px;
       line-height: .95;
       letter-spacing: -.04em;
       margin-bottom: 12px;
     }
-    .login h2 span { color: var(--accent-2); }
-    .login p { color: var(--soft); font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
     .login input {
       width: 100%;
-      padding: 14px 15px;
-      background: rgba(255,255,255,.03);
+      padding: 15px 16px;
+      font: 600 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      border-radius: 16px;
       border: 1px solid var(--line);
-      border-radius: 14px;
-      color: var(--text);
-      font-size: 14px;
-      margin-bottom: 12px;
+      background: #fff;
+      color: var(--ink);
+      margin: 16px 0 12px;
       outline: none;
     }
-    .login input:focus { border-color: rgba(99,102,241,.7); box-shadow: 0 0 0 4px rgba(99,102,241,.12); }
+    .login input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(178,70,45,.10); }
     .login button {
       width: 100%;
-      padding: 14px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--accent), #4f46e5);
-      color: white;
-      font-weight: 800;
+      padding: 15px;
+      border-radius: 16px;
+      background: var(--ink);
+      color: #fff;
     }
-    .login button:hover { transform: translateY(-1px); }
-    @media (max-width: 900px) {
-      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .hero { flex-direction: column; align-items: stretch; }
-      .hero-actions { justify-content: flex-start; }
+    @media (max-width: 920px) {
+      .masthead { grid-template-columns: 1fr; }
+      .stats-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 760px) {
-      .shell { padding: 16px 14px 90px; }
-      .hero { margin-bottom: 14px; padding-top: 8px; }
-      .hero-sub { font-size: 12px; }
-      .stats {
+      .shell { padding: 16px 12px 110px; }
+      .stats-strip {
         display: flex;
         gap: 10px;
         overflow-x: auto;
-        padding-bottom: 2px;
-        margin: 0 -2px 16px;
         scrollbar-width: none;
       }
-      .stats::-webkit-scrollbar { display: none; }
-      .stat { min-width: 130px; flex: 0 0 auto; }
-      .tabs {
+      .stats-strip::-webkit-scrollbar { display: none; }
+      .stat { min-width: 126px; flex: 0 0 auto; }
+      .toolbar {
         position: fixed;
         left: 12px;
         right: 12px;
         bottom: calc(10px + env(safe-area-inset-bottom));
         top: auto;
-        margin: 0;
         padding: 10px;
+        border-radius: 20px;
       }
-      .desktop-table { display: none; }
-      .mobile-cards { display: grid; }
-      .card-actions .btn { flex: 1; }
+      .tab-group { min-width: 0; }
+      .ghost { padding: 12px 12px; }
+      .table-wrap { display: none; }
+      .mobile-list { display: grid; }
     }
   </style>
 </head>
@@ -344,7 +381,11 @@
     async function api(path, opts = {}) {
       const res = await fetch(API + path, {
         ...opts,
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opts.headers || {}) }
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + TOKEN,
+          ...(opts.headers || {})
+        }
       });
       if (res.status === 401) {
         TOKEN = '';
@@ -376,7 +417,7 @@
         .replace(/'/g, '&#39;');
     }
 
-    function reasonBadge(reason) {
+    function badge(reason) {
       const map = {
         spam: ['垃圾广告', 'badge-spam'],
         abuse: ['骚扰辱骂', 'badge-abuse'],
@@ -395,132 +436,120 @@
       return '<span class="badge badge-active">' + (h > 0 ? h + 'h ' : '') + m + 'm 剩余</span>';
     }
 
-    function formatTime(ts) {
+    function time(ts) {
       if (!ts) return '';
       const d = new Date(typeof ts === 'number' ? ts * 1000 : ts);
       return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     }
 
-    function render() {
-      const app = document.getElementById('app');
-      if (!TOKEN) {
-        app.innerHTML =
-          '<div class="login-wrap">' +
-            '<div class="login">' +
-              '<div class="eyebrow">Moderator Access</div>' +
-              '<h2>Whispr <span>Admin</span></h2>' +
-              '<p>查看举报、管理封禁、快速判断现场状态。手机也能直接处理。</p>' +
-              '<input id="token-input" type="password" placeholder="输入管理 Token" autofocus>' +
-              '<button onclick="login()">进入后台</button>' +
-            '</div>' +
-          '</div>';
-        document.getElementById('token-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
-        return;
-      }
+    function stat(value, label) {
+      return '<div class="stat"><div class="stat-value">' + value + '</div><div class="stat-label">' + label + '</div></div>';
+    }
 
+    function loginView() {
+      return '<div class="login-wrap"><div class="login">' +
+        '<div class="eyebrow">moderator entrance</div>' +
+        '<h2>Whispr Admin</h2>' +
+        '<p>不是开发者后台感。它更像一张值班台：快速看清举报、封禁和现场人数，手机上也能直接处理。</p>' +
+        '<input id="token-input" type="password" placeholder="输入管理 Token" autofocus />' +
+        '<button onclick="login()">进入后台</button>' +
+      '</div></div>';
+    }
+
+    function appView() {
       const online = stats.online || 0;
       const waiting = stats.waiting || 0;
       const chatting = Math.max(0, online - waiting);
-
-      app.innerHTML =
-        '<div class="shell">' +
-          '<div class="hero">' +
-            '<div class="hero-title">' +
-              '<div class="eyebrow">Whispr Moderator Console</div>' +
-              '<h1>现场控制台 <span>已连线</span></h1>' +
-              '<div class="hero-sub">轻量，但够快。桌面能看全表，手机直接切卡片处理举报和封禁，不用再捏着表格放大。</div>' +
-            '</div>' +
+      return '<div class="shell">' +
+        '<div class="masthead">' +
+          '<section class="hero">' +
+            '<div class="eyebrow">Whispr moderator desk</div>' +
+            '<h1>不是后台，<br>是值班台。</h1>' +
+            '<p>把要紧的东西放在眼前：现场多少人、谁被举报、哪些 IP 在封禁中。桌面看全量，手机看卡片。</p>' +
             '<div class="hero-actions">' +
-              '<button class="refresh-btn" onclick="loadData()">刷新数据</button>' +
-              '<button class="ghost-btn" onclick="logout()">退出</button>' +
+              '<button class="ghost" onclick="loadData()">刷新</button>' +
+              '<button class="ghost" onclick="logout()">退出</button>' +
             '</div>' +
-          '</div>' +
-          '<div class="stats">' +
-            statCard(online, '在线') +
-            statCard(chatting, '聊天中') +
-            statCard(waiting, '等待中') +
-            statCard(reports.length, '举报') +
-            statCard(bans.length, '封禁') +
-          '</div>' +
-          '<div class="tabs">' +
+          '</section>' +
+          '<aside class="side-note">' +
+            '<div>' +
+              '<div class="eyebrow">today focus</div>' +
+              '<p>如果举报数量开始突然抬头，先看是否集中在某个昵称或同一类内容，再决定是否手动封禁。</p>' +
+            '</div>' +
+            '<div class="side-box"><strong>小提示</strong><p>当前举报里的“封禁”仍需手动输入 IP。后面如果你要，我可以继续把举报和连接信息打通成一键封。</p></div>' +
+          '</aside>' +
+        '</div>' +
+        '<section class="stats-strip">' +
+          stat(online, '在线') +
+          stat(chatting, '聊天中') +
+          stat(waiting, '等待中') +
+          stat(reports.length, '举报') +
+          stat(bans.length, '封禁') +
+        '</section>' +
+        '<section class="toolbar">' +
+          '<div class="tab-group">' +
             '<button class="tab ' + (tab === 'reports' ? 'active' : '') + '" onclick="switchTab(\'reports\')">举报记录 ' + reports.length + '</button>' +
             '<button class="tab ' + (tab === 'bans' ? 'active' : '') + '" onclick="switchTab(\'bans\')">封禁列表 ' + bans.length + '</button>' +
           '</div>' +
-          '<div class="panel ' + (tab === 'reports' ? 'active' : '') + '">' + renderReports() + '</div>' +
-          '<div class="panel ' + (tab === 'bans' ? 'active' : '') + '">' + renderBans() + '</div>' +
-        '</div>';
-    }
-
-    function statCard(value, label) {
-      return '<div class="stat"><div class="stat-value">' + value + '</div><div class="stat-label">' + label + '</div></div>';
+          '<button class="ghost" onclick="loadData()">刷新</button>' +
+        '</section>' +
+        '<section class="panel ' + (tab === 'reports' ? 'active' : '') + '">' + renderReports() + '</section>' +
+        '<section class="panel ' + (tab === 'bans' ? 'active' : '') + '">' + renderBans() + '</section>' +
+      '</div>';
     }
 
     function renderReports() {
       if (!reports.length) return '<div class="empty">暂无举报记录</div>';
-      return (
-        '<div class="desktop-table"><table><thead><tr><th>时间</th><th>房间</th><th>被举报</th><th>原因</th><th>聊天快照</th><th>操作</th></tr></thead><tbody>' +
-        reports.map(r =>
-          '<tr>' +
-            '<td class="time">' + formatTime(r.created_at) + '</td>' +
-            '<td class="mono">' + esc((r.room_id || '').slice(0, 8)) + '...</td>' +
-            '<td>' + esc(r.partner_nickname || '-') + '</td>' +
-            '<td>' + reasonBadge(r.reason) + '</td>' +
-            '<td><div class="msg-snapshot" title="' + esc(r.messages_snapshot || '') + '">' + esc((r.messages_snapshot || '-').split('\n').slice(0, 3).join('\n')) + '</div></td>' +
-            '<td><button class="btn btn-ban" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁</button></td>' +
-          '</tr>'
-        ).join('') +
-        '</tbody></table></div>' +
-        '<div class="mobile-cards">' +
-        reports.map(r =>
-          '<div class="card">' +
-            '<div class="card-head">' +
-              '<div><div class="card-title">' + esc(r.partner_nickname || '未知用户') + '</div><div class="card-sub">' + formatTime(r.created_at) + '</div></div>' +
-              reasonBadge(r.reason) +
-            '</div>' +
-            '<div class="card-grid">' +
-              '<div class="kv"><div class="kv-label">房间</div><div class="kv-value mono">' + esc(r.room_id || '-') + '</div></div>' +
-              '<div class="kv"><div class="kv-label">聊天快照</div><div class="kv-value">' + esc(r.messages_snapshot || '-').replace(/\n/g, '<br>') + '</div></div>' +
-            '</div>' +
-            '<div class="card-actions"><button class="btn btn-ban" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁此用户</button></div>' +
-          '</div>'
-        ).join('') +
-        '</div>'
-      );
+      return '<div class="table-wrap"><table><thead><tr><th>时间</th><th>房间</th><th>被举报</th><th>原因</th><th>聊天快照</th><th>操作</th></tr></thead><tbody>' +
+        reports.map(r => '<tr>' +
+          '<td class="muted">' + time(r.created_at) + '</td>' +
+          '<td class="mono">' + esc((r.room_id || '').slice(0, 10)) + '</td>' +
+          '<td>' + esc(r.partner_nickname || '-') + '</td>' +
+          '<td>' + badge(r.reason) + '</td>' +
+          '<td><div class="snapshot">' + esc(r.messages_snapshot || '-') + '</div></td>' +
+          '<td><button class="btn btn-danger" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁</button></td>' +
+        '</tr>').join('') +
+      '</tbody></table></div>' +
+      '<div class="mobile-list">' + reports.map(r => '<article class="card">' +
+        '<div class="card-head"><div><div class="card-title">' + esc(r.partner_nickname || '未知用户') + '</div><div class="card-meta">' + time(r.created_at) + '</div></div>' + badge(r.reason) + '</div>' +
+        '<div class="kv-grid">' +
+          '<div class="kv"><div class="kv-label">房间</div><div class="kv-value mono">' + esc(r.room_id || '-') + '</div></div>' +
+          '<div class="kv"><div class="kv-label">聊天快照</div><div class="kv-value">' + esc(r.messages_snapshot || '-').replace(/\n/g, '<br>') + '</div></div>' +
+        '</div>' +
+        '<div class="card-actions"><button class="btn btn-danger" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁</button></div>' +
+      '</article>').join('') + '</div>';
     }
 
     function renderBans() {
       if (!bans.length) return '<div class="empty">暂无封禁记录</div>';
-      return (
-        '<div class="desktop-table"><table><thead><tr><th>IP</th><th>原因</th><th>状态</th><th>封禁时间</th><th>操作</th></tr></thead><tbody>' +
-        bans.map(b =>
-          '<tr>' +
-            '<td class="mono">' + esc(b.ip) + '</td>' +
-            '<td>' + esc(b.reason || '-') + '</td>' +
-            '<td>' + banStatus(b) + '</td>' +
-            '<td class="time">' + formatTime(b.created_at) + '</td>' +
-            '<td><button class="btn btn-unban" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></td>' +
-          '</tr>'
-        ).join('') +
-        '</tbody></table></div>' +
-        '<div class="mobile-cards">' +
-        bans.map(b =>
-          '<div class="card">' +
-            '<div class="card-head">' +
-              '<div><div class="card-title mono">' + esc(b.ip) + '</div><div class="card-sub">' + formatTime(b.created_at) + '</div></div>' +
-              banStatus(b) +
-            '</div>' +
-            '<div class="card-grid">' +
-              '<div class="kv"><div class="kv-label">原因</div><div class="kv-value">' + esc(b.reason || '-') + '</div></div>' +
-            '</div>' +
-            '<div class="card-actions"><button class="btn btn-unban" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></div>' +
-          '</div>'
-        ).join('') +
-        '</div>'
-      );
+      return '<div class="table-wrap"><table><thead><tr><th>IP</th><th>原因</th><th>状态</th><th>封禁时间</th><th>操作</th></tr></thead><tbody>' +
+        bans.map(b => '<tr>' +
+          '<td class="mono">' + esc(b.ip) + '</td>' +
+          '<td>' + esc(b.reason || '-') + '</td>' +
+          '<td>' + banStatus(b) + '</td>' +
+          '<td class="muted">' + time(b.created_at) + '</td>' +
+          '<td><button class="btn btn-success" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></td>' +
+        '</tr>').join('') +
+      '</tbody></table></div>' +
+      '<div class="mobile-list">' + bans.map(b => '<article class="card">' +
+        '<div class="card-head"><div><div class="card-title mono">' + esc(b.ip) + '</div><div class="card-meta">' + time(b.created_at) + '</div></div>' + banStatus(b) + '</div>' +
+        '<div class="kv-grid">' +
+          '<div class="kv"><div class="kv-label">原因</div><div class="kv-value">' + esc(b.reason || '-') + '</div></div>' +
+        '</div>' +
+        '<div class="card-actions"><button class="btn btn-success" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></div>' +
+      '</article>').join('') + '</div>';
     }
 
-    function switchTab(t) { tab = t; render(); }
+    function render() {
+      const app = document.getElementById('app');
+      app.innerHTML = TOKEN ? appView() : loginView();
+      if (!TOKEN) {
+        const input = document.getElementById('token-input');
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+      }
+    }
 
+    function switchTab(next) { tab = next; render(); }
     function login() {
       const input = document.getElementById('token-input');
       TOKEN = input.value.trim();
@@ -528,13 +557,11 @@
       localStorage.setItem('whispr_admin_token', TOKEN);
       loadData();
     }
-
     function logout() {
       TOKEN = '';
       localStorage.removeItem('whispr_admin_token');
       render();
     }
-
     async function quickBan(nickname) {
       if (!nickname) return;
       const ip = prompt('输入要封禁的 IP（昵称: ' + nickname + '）:');
@@ -543,7 +570,6 @@
       await api('/api/admin/ban', { method: 'POST', body: JSON.stringify({ ip, reason }) });
       loadData();
     }
-
     async function unban(ip) {
       if (!confirm('解封 ' + ip + ' ?')) return;
       await api('/api/admin/unban', { method: 'POST', body: JSON.stringify({ ip }) });
