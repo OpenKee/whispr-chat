@@ -64,7 +64,12 @@
               <img :src="msg.imageUrl" loading="lazy" />
             </div>
             <div v-if="msg.content" class="message-bubble">{{ msg.content }}</div>
-            <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
+            <div class="message-meta">
+              <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+              <span v-if="msg.self && i === lastSelfIndex" class="message-read">
+                {{ lastSentAt > msg.timestamp ? $t('read') : $t('unread') }}
+              </span>
+            </div>
           </template>
         </div>
       </div>
@@ -204,6 +209,7 @@ export default {
     const imageSizeText = ref('')
     const lightboxUrl = ref('')
     const sending = ref(false)
+    const lastSentAt = ref(0)
     const isPartnerTyping = ref(false)
     const chatDuration = ref('')
     const uploadProgress = ref('')
@@ -261,6 +267,13 @@ export default {
     const genderLabel = computed(() => {
       const map = { male: $t('genderMale'), female: $t('genderFemale'), other: $t('other') }
       return map[partnerGender.value] || ''
+    })
+
+    const lastSelfIndex = computed(() => {
+      for (let i = messages.value.length - 1; i >= 0; i--) {
+        if (messages.value[i].self) return i
+      }
+      return -1
     })
 
     function updateTitle(text) {
@@ -352,9 +365,18 @@ export default {
           })
           if (messages.value.length > 500) messages.value = messages.value.slice(-400)
           scrollToBottom()
+          // Send read receipt if chat is visible
+          if (!document.hidden && ws?.readyState === 1) {
+            ws.send(JSON.stringify({ type: 'read' }))
+          }
           if (document.hidden) {
             updateTitle($t('titleNewMessage', { name: data.nickname }))
           }
+          break
+
+        case 'read':
+          // Partner read our messages
+          lastSentAt.value = Date.now()
           break
 
         case 'image': {
@@ -683,6 +705,10 @@ export default {
     function onVisibility() {
       if (!document.hidden && state.value === 'chatting') {
         updateTitle($t('titleChatting', { name: partnerNickname.value }))
+        // Send read receipt for any pending messages
+        if (ws?.readyState === 1) {
+          ws.send(JSON.stringify({ type: 'read' }))
+        }
       }
     }
 
@@ -701,7 +727,7 @@ export default {
       messages, inputText, searchingSeconds,
       messagesEl, inputEl, fileInputEl,
       imagePreview, imageSizeText, lightboxUrl, sending, isPartnerTyping,
-      chatDuration, uploadProgress,
+      chatDuration, uploadProgress, lastSelfIndex, lastSentAt,
       showReport, reportReason, reportOptions,
       startChat, cancelSearch, sendMessage, leaveChat, rematch, onTyping,
       onFileSelected, cancelImage, previewImage, formatTime, submitReport,
@@ -839,8 +865,24 @@ export default {
 .message-time {
   font-size: 11px;
   color: var(--text-muted);
+  padding: 0 4px;
+}
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 4px;
   padding: 0 4px;
+}
+
+.message-read {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.message.self .message-read {
+  color: var(--accent);
 }
 
 /* ===== Image Messages ===== */

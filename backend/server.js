@@ -229,6 +229,15 @@ async function start() {
               break;
             }
 
+            case 'read': {
+              // Forward read receipt to partner
+              const client = matcher.clients.get(ws);
+              if (client?.partner) {
+                matcher.send(client.partner, { type: 'read' });
+              }
+              break;
+            }
+
             case 'pong': {
               matcher.handlePong(ws);
               break;

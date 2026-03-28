@@ -52,6 +52,11 @@ const t = {
     partnerOnline: '正在聊天',
     partnerTyping: '正在输入...',
     chatEnded: '已结束',
+    genderMale: '男',
+    genderFemale: '女',
+    // Read receipt
+    read: '已读',
+    unread: '未读',
     // Report
     report: '举报',
     reportTitle: '举报原因',
@@ -118,6 +123,11 @@ const t = {
     partnerOnline: 'online',
     partnerTyping: 'typing...',
     chatEnded: 'ended',
+    genderMale: 'Male',
+    genderFemale: 'Female',
+    // Read receipt
+    read: 'Read',
+    unread: '',
     // Report
     report: 'Report',
     reportTitle: 'Report Reason',
