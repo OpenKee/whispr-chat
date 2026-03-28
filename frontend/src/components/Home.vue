@@ -3,11 +3,11 @@
     <div class="home-content">
       <div class="logo">🤫</div><!-- 保留！品牌标志，不许换成图标 -->
       <h1 class="title">Whispr</h1>
-      <p class="subtitle">随机匹配，匿名畅聊</p>
+      <p class="subtitle">{{ $t('subtitle') }}</p>
 
       <div class="setup-card" v-if="!saved">
         <div class="setup-group">
-          <label>性别</label>
+          <label>{{ $t('gender') }}</label>
           <div class="options">
             <button
               v-for="g in genders" :key="g.value"
@@ -19,7 +19,7 @@
         </div>
 
         <div class="setup-group">
-          <label>年龄段</label>
+          <label>{{ $t('ageRange') }}</label>
           <div class="options">
             <button
               v-for="a in ages" :key="a"
@@ -34,65 +34,69 @@
           class="btn-primary"
           :disabled="!gender || !age"
           @click="saveAndGo"
-        >开始聊天</button>
+        >{{ $t('startChat') }}</button>
       </div>
 
       <div class="setup-card" v-else>
         <div class="saved-info">
-          <span>{{ profile.gender === 'male' ? '男' : profile.gender === 'female' ? '女' : '其他' }}</span>
+          <span>{{ profile.gender === 'male' ? $t('male') : profile.gender === 'female' ? $t('female') : $t('other') }}</span>
           <span class="sep">·</span>
           <span>{{ profile.age }}</span>
-          <button class="btn-edit" @click="saved = false">修改</button>
+          <button class="btn-edit" @click="saved = false">{{ $t('editProfile') }}</button>
         </div>
-        <router-link to="/chat" class="btn-primary">开始聊天</router-link>
+        <router-link to="/chat" class="btn-primary">{{ $t('startChat') }}</router-link>
       </div>
 
-      <p class="hint">匹配到陌生人后即可开始对话</p>
+      <p class="hint">{{ $t('hint') }}</p>
 
       <!-- SEO: Feature highlights -->
       <div class="features" aria-label="功能特点">
-        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> 随机匹配</span>
-        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> 实时聊天</span>
-        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 图片分享</span>
-        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 匿名隐私</span>
-        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> 无需下载</span>
+        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> {{ $t('featureMatch') }}</span>
+        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> {{ $t('featureChat') }}</span>
+        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> {{ $t('featureImage') }}</span>
+        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> {{ $t('featurePrivacy') }}</span>
+        <span class="feature-tag"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> {{ $t('featureNoInstall') }}</span>
       </div>
     </div>
     <div class="home-footer">
       <div class="footer-links">
-        <router-link to="/guide">使用说明</router-link>
+        <router-link to="/guide">{{ $t('guide') }}</router-link>
         <span class="sep">·</span>
-        <a href="mailto:jiuhe1129@gmail.com">联系我们</a>
+        <a href="mailto:jiuhe1129@gmail.com">{{ $t('contactUs') }}</a>
+        <span class="sep">·</span>
+        <button class="lang-btn" @click="toggleLang">{{ $t('lang') }}</button>
       </div>
       <div class="footer-more">
-        <router-link to="/terms">服务条款</router-link>
-        <router-link to="/privacy">隐私政策</router-link>
-        <router-link to="/disclaimer">免责声明</router-link>
-        <router-link to="/about">关于我们</router-link>
+        <router-link to="/terms">{{ $t('terms') }}</router-link>
+        <router-link to="/privacy">{{ $t('privacy') }}</router-link>
+        <router-link to="/disclaimer">{{ $t('disclaimer') }}</router-link>
+        <router-link to="/about">{{ $t('about') }}</router-link>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from '../i18n'
 
 const PROFILE_KEY = 'whispr_profile'
 
 export default {
   name: 'Home',
   setup() {
+    const { lang, $t, toggleLang } = useI18n()
     const onlineCount = ref(0)
     const gender = ref('')
     const age = ref('')
     const saved = ref(false)
     const profile = ref({})
 
-    const genders = [
-      { value: 'male', label: '男' },
-      { value: 'female', label: '女' },
-      { value: 'other', label: '其他' }
-    ]
+    const genders = computed(() => [
+      { value: 'male', label: $t('male') },
+      { value: 'female', label: $t('female') },
+      { value: 'other', label: $t('other') }
+    ])
 
     const ages = ['18-25', '26-35', '36-45', '45+']
 
@@ -136,6 +140,7 @@ export default {
     })
 
     return {
+      lang, $t, toggleLang,
       onlineCount, gender, age, saved, profile,
       genders, ages,
       saveAndGo
@@ -357,6 +362,23 @@ export default {
 
 .footer-links a:hover { color: var(--text-secondary); }
 .footer-links .sep { color: var(--text-muted); opacity: 0.4; }
+
+.lang-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.lang-btn:hover {
+  color: var(--text-secondary);
+  border-color: var(--text-muted);
+}
 
 .footer-more {
   display: flex;

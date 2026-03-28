@@ -8,7 +8,7 @@
           <div class="dot dot2"></div>
           <div class="dot dot3"></div>
         </div>
-        <h2>正在重新连接...</h2>
+        <h2>{{ lang === 'zh' ? '正在重新连接...' : 'Reconnecting...' }}</h2>
       </div>
     </div>
 
@@ -20,9 +20,9 @@
           <div class="dot dot2"></div>
           <div class="dot dot3"></div>
         </div>
-        <h2>正在寻找聊天对象...</h2>
-        <p class="searching-hint">{{ searchingSeconds }}s</p>
-        <button class="btn-ghost" @click="cancelSearch">取消</button>
+        <h2>{{ $t('searching') }}</h2>
+        <p class="searching-hint">{{ searchingSeconds }}{{ $t('seconds') }}</p>
+        <button class="btn-ghost" @click="cancelSearch">{{ $t('cancelSearch') }}</button>
       </div>
     </div>
 
@@ -39,18 +39,18 @@
               <span class="partner-tag" v-if="partnerCity"><span v-html="icons.mapPin" class="icon-inline"></span> {{ partnerCity }}</span>
             </div>
             <div v-if="state === 'chatting'" class="partner-status" :class="{ typing: isPartnerTyping }">
-              {{ isPartnerTyping ? '正在输入...' : '正在聊天' }}
+              {{ isPartnerTyping ? (lang === 'zh' ? '正在输入...' : 'typing...') : (lang === 'zh' ? '正在聊天' : 'online') }}
             </div>
-            <div v-else class="partner-status ended">已结束</div>
+            <div v-else class="partner-status ended">{{ lang === 'zh' ? '已结束' : 'ended' }}</div>
             <div class="chat-duration" v-if="chatDuration"><span v-html="icons.clock" class="icon-inline"></span> {{ chatDuration }}</div>
           </div>
         </div>
-        <button v-if="state === 'chatting'" class="btn-danger-sm" @click="leaveChat">离开</button>
+        <button v-if="state === 'chatting'" class="btn-danger-sm" @click="leaveChat">{{ $t('leave') }}</button>
       </div>
 
       <div class="chat-messages" ref="messagesEl">
         <div class="messages-system" v-if="messages.length === 0">
-          已匹配成功，开始聊天吧 <span v-html="icons.sparkle" class="icon-inline"></span>
+          {{ lang === 'zh' ? '已匹配成功，开始聊天吧' : 'Matched! Say hello 👋' }} <span v-html="icons.sparkle" class="icon-inline"></span>
         </div>
         <div
           v-for="(msg, i) in messages"
@@ -91,7 +91,7 @@
             @change="onFileSelected"
             style="display:none"
           />
-          <button class="btn-icon" @click="$refs.fileInputEl.click()" title="发送图片">
+          <button class="btn-icon" @click="$refs.fileInputEl.click()" :title="$t('selectImage')">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -103,7 +103,7 @@
             v-model="inputText"
             @keydown.enter="sendMessage"
             @input="onTyping"
-            placeholder="输入消息..."
+            :placeholder="$t('inputPlaceholder')"
             maxlength="500"
           />
           <button class="btn-send" @click="sendMessage" :disabled="sending">
@@ -121,8 +121,8 @@
 
       <!-- Ended actions -->
       <div v-else class="ended-bar">
-        <button class="btn-primary" @click="rematch">重新匹配</button>
-        <router-link to="/" class="btn-ghost">回到首页</router-link>
+        <button class="btn-primary" @click="rematch">{{ $t('rematch') }}</button>
+        <router-link to="/" class="btn-ghost">{{ lang === 'zh' ? '回到首页' : 'Home' }}</router-link>
       </div>
     </template>
 
@@ -138,6 +138,7 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icons } from '../icons'
+import { useI18n } from '../i18n'
 
 const SESSION_KEY = 'whispr_session'
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024
@@ -167,6 +168,7 @@ export default {
   name: 'Chat',
   setup() {
     const router = useRouter()
+    const { lang, $t, toggleLang } = useI18n()
     const state = ref('reconnecting')
     const nickname = ref('')
     const partnerNickname = ref('')
@@ -238,7 +240,7 @@ export default {
     }
 
     const genderLabel = computed(() => {
-      const map = { male: '男', female: '女', other: '其他' }
+      const map = { male: $t('genderMale'), female: $t('genderFemale'), other: $t('other') }
       return map[partnerGender.value] || ''
     })
 
@@ -278,10 +280,10 @@ export default {
       clearSession()
       state.value = 'ended'
       if (reason === 'partner_left') {
-        addSystemMessage('对方已离开了聊天')
-        updateTitle('对方已离开')
+        addSystemMessage($t('systemPartnerLeft'))
+        updateTitle($t('titlePartnerLeft'))
       } else {
-        addSystemMessage('你已离开了聊天')
+        addSystemMessage($t('systemDisconnected'))
       }
       if (ws) { ws.close(); ws = null }
     }
@@ -310,7 +312,7 @@ export default {
             ws.send(JSON.stringify({ type: 'history' }))
           }
           startDurationTimer()
-          updateTitle('与 ' + data.partnerNickname + ' 聊天中')
+          updateTitle($t('titleChatting', { name: data.partnerNickname }))
           nextTick(() => inputEl.value?.focus())
           break
 
@@ -327,7 +329,7 @@ export default {
           if (messages.value.length > 500) messages.value = messages.value.slice(-400)
           scrollToBottom()
           if (document.hidden) {
-            updateTitle('新消息来自 ' + data.nickname)
+            updateTitle($t('titleNewMessage', { name: data.nickname }))
           }
           break
 
@@ -448,7 +450,7 @@ export default {
       clearTimeout(reconnectTimer)
       reconnectTimer = setTimeout(() => {
         if (state.value === 'reconnecting') {
-          addSystemMessage('连接超时，请重新匹配')
+          addSystemMessage($t('systemReconnectTimeout'))
           clearSession()
           state.value = 'ended'
         }
@@ -503,11 +505,11 @@ export default {
       const file = e.target.files[0]
       if (!file) return
       if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
-        alert('仅支持 JPG/PNG/GIF/WEBP 格式')
+        alert($t('imageTypeError'))
         return
       }
       if (file.size > MAX_IMAGE_SIZE) {
-        alert('图片太大，最大 20MB')
+        alert($t('imageTooLarge'))
         return
       }
       imageFile.value = file
@@ -529,7 +531,7 @@ export default {
     async function uploadAndSendImage() {
       if (!imageFile.value || state.value !== 'chatting' || sending.value) return
       sending.value = true
-      uploadProgress.value = '上传中...'
+      uploadProgress.value = $t('uploadProgress')
       const file = imageFile.value
       const preview = imagePreview.value
 
@@ -570,7 +572,7 @@ export default {
         })
 
         if (data.url) {
-          uploadProgress.value = '压缩中...'
+          uploadProgress.value = $t('compressing')
           ws.send(JSON.stringify({
             type: 'image',
             url: data.url,
@@ -595,7 +597,7 @@ export default {
     }
 
     function leaveChat() {
-      if (!confirm('确定离开聊天吗？')) return
+      if (!confirm($t('confirmLeave'))) return
       if (ws?.readyState === 1) { ws.send(JSON.stringify({ type: 'leave' })) }
       endChat('self_left')
     }
@@ -629,7 +631,7 @@ export default {
 
       const onVisibility = () => {
         if (!document.hidden && state.value === 'chatting') {
-          updateTitle('与 ' + partnerNickname.value + ' 聊天中')
+          updateTitle($t('titleChatting', { name: partnerNickname.value }))
         }
       }
       document.addEventListener('visibilitychange', onVisibility)
@@ -647,6 +649,7 @@ export default {
     })
 
     return {
+      lang, $t, toggleLang,
       state, nickname, partnerNickname, partnerGender, partnerAge, partnerCity, genderLabel, roomId,
       messages, inputText, searchingSeconds,
       messagesEl, inputEl, fileInputEl,
