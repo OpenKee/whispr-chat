@@ -145,13 +145,13 @@ export const about = `
 
 <h2>核心特点</h2>
 <ul>
-  <li>🎲 <strong>随机匹配</strong> — 每次都是一个全新的对话</li>
-  <li>🔒 <strong>完全匿名</strong> — 无需注册，不收集个人信息</li>
-  <li>💬 <strong>实时聊天</strong> — WebSocket 驱动，消息即时送达</li>
-  <li>🖼️ <strong>图片分享</strong> — 支持发送图片，自动压缩节省流量</li>
-  <li>🌙 <strong>深色主题</strong> — 护眼设计，适合夜间使用</li>
-  <li>📱 <strong>全端适配</strong> — 手机、平板、电脑均可使用</li>
-  <li>⚡ <strong>隐私优先</strong> — 聊天记录 7 天自动销毁</li>
+  <li><strong>随机匹配</strong> — 每次都是一个全新的对话</li>
+  <li><strong>完全匿名</strong> — 无需注册，不收集个人信息</li>
+  <li><strong>实时聊天</strong> — WebSocket 驱动，消息即时送达</li>
+  <li><strong>图片分享</strong> — 支持发送图片，自动压缩节省流量</li>
+  <li><strong>深色主题</strong> — 护眼设计，适合夜间使用</li>
+  <li><strong>全端适配</strong> — 手机、平板、电脑均可使用</li>
+  <li><strong>隐私优先</strong> — 聊天记录 7 天自动销毁</li>
 </ul>
 
 <h2>技术架构</h2>

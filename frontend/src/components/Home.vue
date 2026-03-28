@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="home-content">
-      <div class="logo">🤫</div>
+      <div class="logo"><MessageCircle :size="48" /></div>
       <h1 class="title">Whispr</h1>
       <p class="subtitle">随机匹配，匿名畅聊</p>
 
@@ -51,11 +51,11 @@
 
       <!-- SEO: Feature highlights -->
       <div class="features" aria-label="功能特点">
-        <span class="feature-tag">🎲 随机匹配</span>
-        <span class="feature-tag">💬 实时聊天</span>
-        <span class="feature-tag">🖼️ 图片分享</span>
-        <span class="feature-tag">🔒 匿名隐私</span>
-        <span class="feature-tag">📱 无需下载</span>
+        <span class="feature-tag"><Shuffle :size="14" /> 随机匹配</span>
+        <span class="feature-tag"><MessageCircle :size="14" /> 实时聊天</span>
+        <span class="feature-tag"><Image :size="14" /> 图片分享</span>
+        <span class="feature-tag"><Shield :size="14" /> 匿名隐私</span>
+        <span class="feature-tag"><Smartphone :size="14" /> 无需下载</span>
       </div>
     </div>
     <div class="home-footer">
@@ -78,6 +78,7 @@
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { MessageCircle, Shuffle, Image, Shield, Smartphone } from 'lucide-vue-next'
 
 const PROFILE_KEY = 'whispr_profile'
 
@@ -164,13 +165,15 @@ export default {
 }
 
 .logo {
-  font-size: 72px;
   margin-bottom: 16px;
   line-height: 1;
   animation: logoFloat 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   cursor: default;
   user-select: none;
   will-change: transform;
+  color: var(--accent);
+  display: flex;
+  justify-content: center;
 }
 
 @keyframes logoFloat {
@@ -321,6 +324,9 @@ export default {
   background: var(--bg-card);
   border: 1px solid var(--border);
   color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .home-footer {

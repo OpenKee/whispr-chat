@@ -310,7 +310,7 @@ export default {
             ws.send(JSON.stringify({ type: 'history' }))
           }
           startDurationTimer()
-          updateTitle('💬 与 ' + data.partnerNickname + ' 聊天中')
+          updateTitle('与 ' + data.partnerNickname + ' 聊天中')
           nextTick(() => inputEl.value?.focus())
           break
 
@@ -327,7 +327,7 @@ export default {
           if (messages.value.length > 500) messages.value = messages.value.slice(-400)
           scrollToBottom()
           if (document.hidden) {
-            updateTitle('📩 ' + data.nickname + ' 发来消息')
+            updateTitle('新消息来自 ' + data.nickname)
           }
           break
 
@@ -583,7 +583,7 @@ export default {
         }
       } catch (err) {
         console.error('Upload failed:', err)
-        addSystemMessage('⚠️ ' + err.message)
+        addSystemMessage('[错误] ' + err.message)
       }
 
       cancelImage()
@@ -629,7 +629,7 @@ export default {
 
       const onVisibility = () => {
         if (!document.hidden && state.value === 'chatting') {
-          updateTitle('💬 与 ' + partnerNickname.value + ' 聊天中')
+          updateTitle('与 ' + partnerNickname.value + ' 聊天中')
         }
       }
       document.addEventListener('visibilitychange', onVisibility)
