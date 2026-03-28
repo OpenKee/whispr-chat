@@ -151,9 +151,12 @@ function loadSession() {
     const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
     const s = JSON.parse(raw)
-    if (Date.now() - (s.savedAt || 0) > 30000) return null
+    if (Date.now() - (s.savedAt || 0) > 30000) {
+      clearSession()
+      return null
+    }
     return s
-  } catch { return null }
+  } catch { clearSession(); return null }
 }
 
 function clearSession() {
@@ -276,6 +279,7 @@ export default {
       } else {
         addSystemMessage('你已离开了聊天')
       }
+      if (ws) { ws.close(); ws = null }
     }
 
     function handleMessage(data) {
@@ -391,7 +395,9 @@ export default {
         }
       }, 1000)
       connect()
-      setTimeout(sendJoin, 300)
+      if (ws) {
+        ws.onopen = () => { sendJoin() }
+      }
     }
 
     function rematch() {
@@ -401,11 +407,15 @@ export default {
 
     function autoReconnect() {
       connect()
-      setTimeout(sendJoin, 300)
+      // Wait for WebSocket to open before sending join
+      if (ws) {
+        ws.onopen = () => { sendJoin() }
+      }
       setTimeout(() => {
         if (state.value === 'reconnecting') {
+          addSystemMessage('连接超时，请重新匹配')
           clearSession()
-          router.push('/')
+          state.value = 'ended'
         }
       }, 5000)
     }
@@ -508,13 +518,16 @@ export default {
             }
           }
           xhr.onload = () => {
-            if (xhr.status === 200) {
-              resolve(JSON.parse(xhr.responseText))
-            } else {
-              reject(new Error('Upload failed'))
-            }
+            try {
+              const body = JSON.parse(xhr.responseText)
+              if (xhr.status === 200) {
+                resolve(body)
+              } else {
+                reject(new Error(body.error || '上传失败'))
+              }
+            } catch { reject(new Error('上传失败')) }
           }
-          xhr.onerror = () => reject(new Error('Network error'))
+          xhr.onerror = () => reject(new Error('网络错误'))
           xhr.send(formData)
         })
 
@@ -532,6 +545,7 @@ export default {
         }
       } catch (err) {
         console.error('Upload failed:', err)
+        addSystemMessage('⚠️ ' + err.message)
       }
 
       cancelImage()
