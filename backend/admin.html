@@ -2,58 +2,332 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Whispr Admin</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; min-height: 100vh; }
-    .header { background: #111118; border-bottom: 1px solid #1e1e2a; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
-    .header h1 { font-size: 18px; font-weight: 600; }
-    .header h1 span { color: #6366f1; }
-    .stats { display: flex; gap: 16px; }
-    .stat { background: #111118; border: 1px solid #1e1e2a; border-radius: 10px; padding: 14px 20px; min-width: 120px; }
-    .stat-value { font-size: 24px; font-weight: 700; color: #6366f1; }
-    .stat-label { font-size: 12px; color: #888; margin-top: 2px; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-    .tab { background: #111118; border: 1px solid #1e1e2a; color: #888; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: inherit; transition: all 0.2s; }
-    .tab.active { background: #6366f1; color: white; border-color: #6366f1; }
-    .tab:hover:not(.active) { border-color: #333; color: #ccc; }
+    :root {
+      --bg: #09090d;
+      --panel: #111118;
+      --panel-2: #151520;
+      --line: #232333;
+      --soft: #7e8194;
+      --text: #ececf3;
+      --accent: #6366f1;
+      --accent-2: #7c7ff8;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --shadow: 0 20px 50px rgba(0,0,0,.28);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(99,102,241,.12), transparent 32%),
+        radial-gradient(circle at top right, rgba(239,68,68,.08), transparent 28%),
+        linear-gradient(180deg, #0a0a0f 0%, #09090d 100%);
+      padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+      background-size: 24px 24px;
+      mask-image: radial-gradient(circle at center, black, transparent 85%);
+      opacity: .3;
+    }
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+      padding: 18px 2px 8px;
+    }
+    .hero-title {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .eyebrow {
+      color: var(--soft);
+      font-size: 11px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: .95;
+      letter-spacing: -.04em;
+      font-weight: 800;
+    }
+    h1 span { color: var(--accent-2); }
+    .hero-sub {
+      color: var(--soft);
+      font-size: 13px;
+      max-width: 520px;
+      line-height: 1.55;
+    }
+    .hero-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .ghost-btn, .refresh-btn, .tab, .btn, .login button {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      transition: .2s ease;
+    }
+    .refresh-btn, .ghost-btn {
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    .refresh-btn:hover, .ghost-btn:hover { border-color: #35354b; transform: translateY(-1px); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 16px 14px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+    .stat-value {
+      font-size: clamp(22px, 3.6vw, 30px);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .stat-label { color: var(--soft); font-size: 12px; }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      position: sticky;
+      top: 10px;
+      z-index: 5;
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,.05);
+      background: rgba(12,12,18,.78);
+      backdrop-filter: blur(18px);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+    .tab {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--soft);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .tab.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
+    }
     .panel { display: none; }
     .panel.active { display: block; }
+    .desktop-table {
+      background: rgba(255,255,255,.025);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 10px 14px; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #1e1e2a; }
-    td { padding: 12px 14px; font-size: 14px; border-bottom: 1px solid #1a1a24; }
-    tr:hover td { background: #111118; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
-    .badge-spam { background: #f59e0b22; color: #f59e0b; }
-    .badge-abuse { background: #ef444422; color: #ef4444; }
-    .badge-inappropriate { background: #8b5cf622; color: #8b5cf6; }
-    .badge-other { background: #6b728022; color: #9ca3af; }
-    .badge-permanent { background: #ef444422; color: #ef4444; }
-    .badge-temp { background: #f59e0b22; color: #f59e0b; }
-    .badge-active { background: #ef444422; color: #ef4444; }
-    .badge-expired { background: #22c55e22; color: #22c55e; }
-    .btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-family: inherit; transition: all 0.2s; }
-    .btn-ban { background: #ef4444; color: white; }
-    .btn-ban:hover { background: #dc2626; }
-    .btn-unban { background: #22c55e; color: white; }
-    .btn-unban:hover { background: #16a34a; }
-    .empty { text-align: center; padding: 40px; color: #555; }
-    .login { max-width: 360px; margin: 100px auto; text-align: center; }
-    .login h2 { margin-bottom: 20px; font-size: 20px; }
-    .login input { width: 100%; padding: 10px 14px; background: #111118; border: 1px solid #1e1e2a; border-radius: 8px; color: #e0e0e0; font-size: 14px; margin-bottom: 12px; font-family: inherit; }
-    .login input:focus { outline: none; border-color: #6366f1; }
-    .login button { width: 100%; padding: 10px; background: #6366f1; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: inherit; }
-    .login button:hover { background: #4f46e5; }
-    .msg-snapshot { font-size: 12px; color: #666; max-width: 300px; white-space: pre-line; max-height: 60px; overflow: hidden; cursor: pointer; }
-    .msg-snapshot:hover { color: #999; }
-    .time { font-size: 12px; color: #555; }
-    .refresh-btn { background: none; border: 1px solid #1e1e2a; color: #888; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit; }
-    .refresh-btn:hover { border-color: #333; color: #ccc; }
+    th {
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #6d7186;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
+    }
+    td {
+      padding: 16px 18px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tr:hover td { background: rgba(255,255,255,.018); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #c7cbdb; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+    .badge-spam { background: rgba(245,158,11,.12); color: #fbbf24; }
+    .badge-abuse { background: rgba(239,68,68,.12); color: #f87171; }
+    .badge-inappropriate { background: rgba(139,92,246,.12); color: #a78bfa; }
+    .badge-other { background: rgba(107,114,128,.16); color: #c0c6d4; }
+    .badge-permanent, .badge-active { background: rgba(239,68,68,.14); color: #f87171; }
+    .badge-expired { background: rgba(34,197,94,.14); color: #4ade80; }
+    .btn {
+      padding: 9px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .btn-ban { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .btn-unban { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.04); }
+    .msg-snapshot {
+      font-size: 12px;
+      color: #9aa0b6;
+      line-height: 1.55;
+      white-space: pre-line;
+      max-width: 320px;
+      max-height: 70px;
+      overflow: hidden;
+    }
+    .time { color: var(--soft); font-size: 12px; white-space: nowrap; }
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 20px;
+      padding: 56px 20px;
+      text-align: center;
+      color: #70758b;
+      background: rgba(255,255,255,.018);
+    }
+    .mobile-cards { display: none; gap: 12px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.018));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card-head, .card-row, .card-actions {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .card-head { margin-bottom: 12px; }
+    .card-title { font-weight: 700; font-size: 15px; }
+    .card-sub { color: var(--soft); font-size: 12px; margin-top: 4px; }
+    .card-grid {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .kv {
+      padding: 11px 12px;
+      background: rgba(255,255,255,.028);
+      border: 1px solid rgba(255,255,255,.04);
+      border-radius: 14px;
+    }
+    .kv-label { color: var(--soft); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+    .kv-value { font-size: 13px; line-height: 1.55; color: var(--text); word-break: break-word; }
+    .login-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .login {
+      width: min(100%, 420px);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+    .login .eyebrow { margin-bottom: 10px; }
+    .login h2 {
+      font-size: 32px;
+      line-height: .95;
+      letter-spacing: -.04em;
+      margin-bottom: 12px;
+    }
+    .login h2 span { color: var(--accent-2); }
+    .login p { color: var(--soft); font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .login input {
+      width: 100%;
+      padding: 14px 15px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--text);
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .login input:focus { border-color: rgba(99,102,241,.7); box-shadow: 0 0 0 4px rgba(99,102,241,.12); }
+    .login button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      color: white;
+      font-weight: 800;
+    }
+    .login button:hover { transform: translateY(-1px); }
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero { flex-direction: column; align-items: stretch; }
+      .hero-actions { justify-content: flex-start; }
+    }
     @media (max-width: 760px) {
-      .stats { flex-wrap: wrap; }
-      th:nth-child(4), td:nth-child(4), th:nth-child(5), td:nth-child(5) { display: none; }
+      .shell { padding: 16px 14px 90px; }
+      .hero { margin-bottom: 14px; padding-top: 8px; }
+      .hero-sub { font-size: 12px; }
+      .stats {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        margin: 0 -2px 16px;
+        scrollbar-width: none;
+      }
+      .stats::-webkit-scrollbar { display: none; }
+      .stat { min-width: 130px; flex: 0 0 auto; }
+      .tabs {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        top: auto;
+        margin: 0;
+        padding: 10px;
+      }
+      .desktop-table { display: none; }
+      .mobile-cards { display: grid; }
+      .card-actions .btn { flex: 1; }
     }
   </style>
 </head>
@@ -62,20 +336,24 @@
   <script>
     let TOKEN = localStorage.getItem('whispr_admin_token') || '';
     const API = '';
+    let tab = 'reports';
+    let reports = [];
+    let bans = [];
+    let stats = {};
 
     async function api(path, opts = {}) {
       const res = await fetch(API + path, {
         ...opts,
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opts.headers || {}) }
       });
-      if (res.status === 401) { TOKEN = ''; localStorage.removeItem('whispr_admin_token'); render(); return null; }
+      if (res.status === 401) {
+        TOKEN = '';
+        localStorage.removeItem('whispr_admin_token');
+        render();
+        return null;
+      }
       return res.json();
     }
-
-    let tab = 'reports';
-    let reports = [];
-    let bans = [];
-    let stats = {};
 
     async function loadData() {
       const [r, b, s] = await Promise.all([
@@ -89,10 +367,23 @@
       render();
     }
 
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function reasonBadge(reason) {
-      const map = { spam: ['垃圾广告', 'badge-spam'], abuse: ['骚扰辱骂', 'badge-abuse'], inappropriate: ['不当内容', 'badge-inappropriate'] };
+      const map = {
+        spam: ['垃圾广告', 'badge-spam'],
+        abuse: ['骚扰辱骂', 'badge-abuse'],
+        inappropriate: ['不当内容', 'badge-inappropriate']
+      };
       const [label, cls] = map[reason] || [reason || '其他', 'badge-other'];
-      return '<span class="badge ' + cls + '">' + label + '</span>';
+      return '<span class="badge ' + cls + '">' + esc(label) + '</span>';
     }
 
     function banStatus(b) {
@@ -112,74 +403,136 @@
 
     function render() {
       const app = document.getElementById('app');
-
       if (!TOKEN) {
-        app.innerHTML = '<div class="login"><h2>Whispr <span style="color:#6366f1">Admin</span></h2><input id="token-input" type="password" placeholder="输入管理 Token" autofocus><button onclick="login()">进入</button></div>';
+        app.innerHTML =
+          '<div class="login-wrap">' +
+            '<div class="login">' +
+              '<div class="eyebrow">Moderator Access</div>' +
+              '<h2>Whispr <span>Admin</span></h2>' +
+              '<p>查看举报、管理封禁、快速判断现场状态。手机也能直接处理。</p>' +
+              '<input id="token-input" type="password" placeholder="输入管理 Token" autofocus>' +
+              '<button onclick="login()">进入后台</button>' +
+            '</div>' +
+          '</div>';
         document.getElementById('token-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
         return;
       }
 
       const online = stats.online || 0;
       const waiting = stats.waiting || 0;
-      const chatting = online - waiting;
+      const chatting = Math.max(0, online - waiting);
 
-      app.innerHTML = '<div class="header"><h1>Whispr <span>Admin</span></h1><div class="stats">' +
-        '<div class="stat"><div class="stat-value">' + online + '</div><div class="stat-label">在线</div></div>' +
-        '<div class="stat"><div class="stat-value">' + chatting + '</div><div class="stat-label">聊天中</div></div>' +
-        '<div class="stat"><div class="stat-value">' + waiting + '</div><div class="stat-label">等待中</div></div>' +
-        '<div class="stat"><div class="stat-value">' + reports.length + '</div><div class="stat-label">举报</div></div>' +
-        '<div class="stat"><div class="stat-value">' + bans.length + '</div><div class="stat-label">封禁</div></div>' +
-        '</div></div>' +
-        '<div class="container">' +
-        '<div class="tabs">' +
-        '<button class="tab ' + (tab === 'reports' ? 'active' : '') + '" onclick="switchTab(\'reports\')">举报记录 (' + reports.length + ')</button>' +
-        '<button class="tab ' + (tab === 'bans' ? 'active' : '') + '" onclick="switchTab(\'bans\')">封禁列表 (' + bans.length + ')</button>' +
-        '<button class="refresh-btn" onclick="loadData()">刷新</button>' +
-        '</div>' +
-        '<div class="panel ' + (tab === 'reports' ? 'active' : '') + '" id="reports-panel">' + renderReports() + '</div>' +
-        '<div class="panel ' + (tab === 'bans' ? 'active' : '') + '" id="bans-panel">' + renderBans() + '</div>' +
+      app.innerHTML =
+        '<div class="shell">' +
+          '<div class="hero">' +
+            '<div class="hero-title">' +
+              '<div class="eyebrow">Whispr Moderator Console</div>' +
+              '<h1>现场控制台 <span>已连线</span></h1>' +
+              '<div class="hero-sub">轻量，但够快。桌面能看全表，手机直接切卡片处理举报和封禁，不用再捏着表格放大。</div>' +
+            '</div>' +
+            '<div class="hero-actions">' +
+              '<button class="refresh-btn" onclick="loadData()">刷新数据</button>' +
+              '<button class="ghost-btn" onclick="logout()">退出</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="stats">' +
+            statCard(online, '在线') +
+            statCard(chatting, '聊天中') +
+            statCard(waiting, '等待中') +
+            statCard(reports.length, '举报') +
+            statCard(bans.length, '封禁') +
+          '</div>' +
+          '<div class="tabs">' +
+            '<button class="tab ' + (tab === 'reports' ? 'active' : '') + '" onclick="switchTab(\'reports\')">举报记录 ' + reports.length + '</button>' +
+            '<button class="tab ' + (tab === 'bans' ? 'active' : '') + '" onclick="switchTab(\'bans\')">封禁列表 ' + bans.length + '</button>' +
+          '</div>' +
+          '<div class="panel ' + (tab === 'reports' ? 'active' : '') + '">' + renderReports() + '</div>' +
+          '<div class="panel ' + (tab === 'bans' ? 'active' : '') + '">' + renderBans() + '</div>' +
         '</div>';
+    }
+
+    function statCard(value, label) {
+      return '<div class="stat"><div class="stat-value">' + value + '</div><div class="stat-label">' + label + '</div></div>';
     }
 
     function renderReports() {
       if (!reports.length) return '<div class="empty">暂无举报记录</div>';
-      return '<table><thead><tr><th>时间</th><th>房间</th><th>被举报</th><th>原因</th><th>聊天快照</th><th>操作</th></tr></thead><tbody>' +
-        reports.map(r => '<tr>' +
-          '<td class="time">' + formatTime(r.created_at) + '</td>' +
-          '<td style="font-family:monospace;font-size:12px">' + (r.room_id || '').slice(0, 8) + '...</td>' +
-          '<td>' + (r.partner_nickname || '-') + '</td>' +
-          '<td>' + reasonBadge(r.reason) + '</td>' +
-          '<td><div class="msg-snapshot" title="' + (r.messages_snapshot || '').replace(/"/g, '&quot;') + '">' + (r.messages_snapshot || '-').split('\n').slice(0, 3).join('<br>') + '</div></td>' +
-          '<td><button class="btn btn-ban" onclick="quickBan(\'' + (r.partner_nickname || '') + '\')">封禁</button></td>' +
-          '</tr>').join('') +
-        '</tbody></table>';
+      return (
+        '<div class="desktop-table"><table><thead><tr><th>时间</th><th>房间</th><th>被举报</th><th>原因</th><th>聊天快照</th><th>操作</th></tr></thead><tbody>' +
+        reports.map(r =>
+          '<tr>' +
+            '<td class="time">' + formatTime(r.created_at) + '</td>' +
+            '<td class="mono">' + esc((r.room_id || '').slice(0, 8)) + '...</td>' +
+            '<td>' + esc(r.partner_nickname || '-') + '</td>' +
+            '<td>' + reasonBadge(r.reason) + '</td>' +
+            '<td><div class="msg-snapshot" title="' + esc(r.messages_snapshot || '') + '">' + esc((r.messages_snapshot || '-').split('\n').slice(0, 3).join('\n')) + '</div></td>' +
+            '<td><button class="btn btn-ban" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁</button></td>' +
+          '</tr>'
+        ).join('') +
+        '</tbody></table></div>' +
+        '<div class="mobile-cards">' +
+        reports.map(r =>
+          '<div class="card">' +
+            '<div class="card-head">' +
+              '<div><div class="card-title">' + esc(r.partner_nickname || '未知用户') + '</div><div class="card-sub">' + formatTime(r.created_at) + '</div></div>' +
+              reasonBadge(r.reason) +
+            '</div>' +
+            '<div class="card-grid">' +
+              '<div class="kv"><div class="kv-label">房间</div><div class="kv-value mono">' + esc(r.room_id || '-') + '</div></div>' +
+              '<div class="kv"><div class="kv-label">聊天快照</div><div class="kv-value">' + esc(r.messages_snapshot || '-').replace(/\n/g, '<br>') + '</div></div>' +
+            '</div>' +
+            '<div class="card-actions"><button class="btn btn-ban" onclick="quickBan(' + JSON.stringify(r.partner_nickname || '') + ')">封禁此用户</button></div>' +
+          '</div>'
+        ).join('') +
+        '</div>'
+      );
     }
 
     function renderBans() {
       if (!bans.length) return '<div class="empty">暂无封禁记录</div>';
-      return '<table><thead><tr><th>IP</th><th>原因</th><th>状态</th><th>封禁时间</th><th>操作</th></tr></thead><tbody>' +
-        bans.map(b => '<tr>' +
-          '<td style="font-family:monospace;font-size:13px">' + b.ip + '</td>' +
-          '<td style="font-size:13px">' + (b.reason || '-') + '</td>' +
-          '<td>' + banStatus(b) + '</td>' +
-          '<td class="time">' + formatTime(b.created_at) + '</td>' +
-          '<td><button class="btn btn-unban" onclick="unban(\'' + b.ip + '\')">解封</button></td>' +
-          '</tr>').join('') +
-        '</tbody></table>';
+      return (
+        '<div class="desktop-table"><table><thead><tr><th>IP</th><th>原因</th><th>状态</th><th>封禁时间</th><th>操作</th></tr></thead><tbody>' +
+        bans.map(b =>
+          '<tr>' +
+            '<td class="mono">' + esc(b.ip) + '</td>' +
+            '<td>' + esc(b.reason || '-') + '</td>' +
+            '<td>' + banStatus(b) + '</td>' +
+            '<td class="time">' + formatTime(b.created_at) + '</td>' +
+            '<td><button class="btn btn-unban" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></td>' +
+          '</tr>'
+        ).join('') +
+        '</tbody></table></div>' +
+        '<div class="mobile-cards">' +
+        bans.map(b =>
+          '<div class="card">' +
+            '<div class="card-head">' +
+              '<div><div class="card-title mono">' + esc(b.ip) + '</div><div class="card-sub">' + formatTime(b.created_at) + '</div></div>' +
+              banStatus(b) +
+            '</div>' +
+            '<div class="card-grid">' +
+              '<div class="kv"><div class="kv-label">原因</div><div class="kv-value">' + esc(b.reason || '-') + '</div></div>' +
+            '</div>' +
+            '<div class="card-actions"><button class="btn btn-unban" onclick="unban(' + JSON.stringify(b.ip) + ')">解封</button></div>' +
+          '</div>'
+        ).join('') +
+        '</div>'
+      );
     }
 
-    function switchTab(t) {
-      tab = t;
-      render();
-    }
+    function switchTab(t) { tab = t; render(); }
 
     function login() {
       const input = document.getElementById('token-input');
       TOKEN = input.value.trim();
-      if (TOKEN) {
-        localStorage.setItem('whispr_admin_token', TOKEN);
-        loadData();
-      }
+      if (!TOKEN) return;
+      localStorage.setItem('whispr_admin_token', TOKEN);
+      loadData();
+    }
+
+    function logout() {
+      TOKEN = '';
+      localStorage.removeItem('whispr_admin_token');
+      render();
     }
 
     async function quickBan(nickname) {
@@ -197,11 +550,8 @@
       loadData();
     }
 
-    // Initial render
     if (TOKEN) loadData();
     else render();
-
-    // Auto refresh every 30s
     setInterval(() => { if (TOKEN) loadData(); }, 30000);
   </script>
 </body>
