@@ -39,7 +39,7 @@
 
       <div class="setup-card" v-else>
         <div class="saved-info">
-          <span>{{ profile.gender === 'male' ? $t('male') : profile.gender === 'female' ? $t('female') : $t('other') }}</span>
+          <span>{{ profile.gender === 'male' ? $t('male') : $t('female') }}</span>
           <span class="sep">·</span>
           <span>{{ profile.age }}</span>
           <button class="btn-edit" @click="saved = false">{{ $t('editProfile') }}</button>
@@ -94,8 +94,7 @@ export default {
 
     const genders = computed(() => [
       { value: 'male', label: $t('male') },
-      { value: 'female', label: $t('female') },
-      { value: 'other', label: $t('other') }
+      { value: 'female', label: $t('female') }
     ])
 
     const ages = ['18-25', '26-35', '36-45', '45+']
