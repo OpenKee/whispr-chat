@@ -267,23 +267,22 @@ async function start() {
   });
 
   // API: report (requires clientId to verify reporter identity)
-  // API: report (requires clientId to verify reporter identity)
   fastify.post('/api/report', async (req, reply) => {
     const { roomId, reason, clientId } = req.body || {};
     if (!roomId || !clientId) return reply.code(400).send({ error: 'missing roomId or clientId' });
     const reporterIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
 
-    // Verify reporter was in this room
+    // Verify reporter was in this specific room
     let reporterFound = false;
     for (const [, client] of matcher.clients) {
-      if (client.clientId === clientId) { reporterFound = true; break; }
+      if (client.clientId === clientId && client.roomId === roomId) { reporterFound = true; break; }
     }
     if (!reporterFound) {
-      for (const [cid] of matcher.recentlyDisconnected) {
-        if (cid === clientId) { reporterFound = true; break; }
+      for (const [cid, entry] of matcher.recentlyDisconnected) {
+        if (cid === clientId && entry.roomId === roomId) { reporterFound = true; break; }
       }
     }
-    if (!reporterFound) return reply.code(403).send({ error: 'not found in any room' });
+    if (!reporterFound) return reply.code(403).send({ error: 'not found in this room' });
 
     // Get messages snapshot
     const msgs = getMessages(roomId);
