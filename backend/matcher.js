@@ -48,11 +48,11 @@ class Matcher {
 
       if (recent.partnerWs && recent.partnerWs.readyState === 1) {
         partnerInfo = this.clients.get(recent.partnerWs);
-        if (partnerInfo) partnerWs = recent.partnerWs;
+        if (partnerInfo && !partnerInfo.partner) partnerWs = recent.partnerWs;
       }
       if (!partnerWs && recent.partnerClientId) {
         for (const [ws2, info] of this.clients) {
-          if (info.clientId === recent.partnerClientId && !info.partner) {
+          if (info.clientId === recent.partnerClientId && !info.partner && ws2.readyState === 1) {
             partnerWs = ws2;
             partnerInfo = info;
             break;
@@ -256,10 +256,11 @@ class Matcher {
       const timer = setTimeout(() => {
         this.recentlyDisconnected.delete(clientId);
         if (partnerClientId) this.recentlyDisconnected.delete(partnerClientId);
-        // Now actually notify partner
-        if (partnerInfo && partnerInfo.ws.readyState === 1) {
-          partnerInfo.partner = null;
-          partnerInfo.roomId = null;
+        // Re-lookup partner from current clients (not captured stale reference)
+        const currentPartner = this.clients.get(partnerWs);
+        if (currentPartner && !currentPartner.partner) {
+          currentPartner.partner = null;
+          currentPartner.roomId = null;
           this.send(partnerWs, { type: 'partner_left' });
         }
       }, 180000);
@@ -270,7 +271,8 @@ class Matcher {
       });
 
       // Also create reconnection entry for partner (either can reconnect)
-      if (partnerClientId) {
+      // Don't overwrite if partner already has an entry (simultaneous disconnect)
+      if (partnerClientId && !this.recentlyDisconnected.has(partnerClientId)) {
         this.recentlyDisconnected.set(partnerClientId, {
           partnerWs: ws, partnerClientId: clientId,
           roomId, nickname: partnerInfo.nickname,
