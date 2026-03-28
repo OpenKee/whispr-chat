@@ -39,8 +39,9 @@ export const privacy_zh = `
 <p>本平台致力于<span class="highlight">最小化数据收集</span>：</p>
 <ul>
   <li><strong>不收集</strong>：姓名、邮箱、手机号、身份证等个人身份信息</li>
-  <li><strong>临时收集</strong>：IP 地址（仅用于城市定位展示，不存储）</li>
+  <li><strong>收集</strong>：IP 地址（用于城市定位展示；用于举报记录和封禁管理时会存储）</li>
   <li><strong>临时存储</strong>：聊天消息和图片（7 天后自动删除）</li>
+  <li><strong>安全存储</strong>：举报记录（含举报人 IP 和被举报人 IP）和封禁记录</li>
 </ul>
 <h2>2. 信息使用</h2>
 <p>收集的信息仅用于：</p>
@@ -53,8 +54,9 @@ export const privacy_zh = `
 <ul>
   <li>聊天记录存储在服务器本地数据库中</li>
   <li>图片文件存储在服务器本地文件系统中</li>
-  <li>所有数据在 <span class="highlight">7 天后自动清理</span></li>
+  <li>所有聊天数据在 <span class="highlight">7 天后自动清理</span></li>
   <li>我们不使用第三方数据库或云存储服务</li>
+  <li>IP 地理位置查询使用第三方服务（ip-api.com、ip.sb），这些服务不会获取您的聊天内容</li>
 </ul>
 <h2>4. 信息共享</h2>
 <p>我们<span class="highlight">不会</span>将您的信息出售、出租或以其他方式提供给第三方，除非：</p>
@@ -76,6 +78,7 @@ export const privacy_zh = `
   <li>文件上传类型和大小双重校验</li>
   <li>上传频率限制</li>
   <li>消息内容长度限制</li>
+  <li>举报系统（支持匿名举报，按 IP 统计防止恶意举报）</li>
 </ul>
 <h2>7. 未成年人保护</h2>
 <p>本平台仅面向 <span class="highlight">18 周岁及以上</span> 的成年人。我们不会故意收集未成年人的个人信息，如发现未成年人使用本服务将终止其连接。</p>
@@ -170,7 +173,9 @@ export const guide_zh = `
 <h3>重新匹配</h3>
 <p>离开聊天后，点击「重新匹配」可以立即寻找新的聊天对象。</p>
 <h3>断线重连</h3>
-<p>如果不小心刷新了页面或网络断开，系统会保留你的聊天房间 <span class="highlight">3 分钟</span>。在 3 分钟内回到聊天页面即可自动恢复对话。</p>
+<p>如果不小心刷新了页面或网络断开，系统会保留你的聊天房间 <span class="highlight">3 分钟</span>。在 3 分钟内回到聊天页面即可自动恢复对话。双方都可以触发重连。</p>
+<h3>举报对方</h3>
+<p>聊天结束后，点击「举报」按钮，选择举报原因（垃圾广告、骚扰辱骂、不当内容、其他）并提交。系统会保留最近 20 条聊天记录作为证据。同一用户被 3 个不同的人举报后会被自动封禁。</p>
 <h2>隐私与安全</h2>
 <ul>
   <li>无需注册，不收集个人身份信息</li>
@@ -187,7 +192,7 @@ export const guide_zh = `
 <h3>聊天记录会保存多久？</h3>
 <p>所有聊天记录和图片在 <span class="highlight">7 天后自动销毁</span>，不会永久保存。</p>
 <h3>对方发了不当内容怎么办？</h3>
-<p>直接点击「离开」结束对话。如需举报，请发送邮件至 <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a>。</p>
+<p>聊天结束后，点击「举报」按钮提交举报。如果同一用户被多人举报，系统会自动封禁。</p>
 <p class="last-update">版本 1.0 · 2026 年 3 月</p>
 `
 
@@ -232,8 +237,9 @@ export const privacy_en = `
 <p>We are committed to <span class="highlight">minimal data collection</span>:</p>
 <ul>
   <li><strong>Not collected</strong>: name, email, phone, ID number, or other personal identifiers</li>
-  <li><strong>Temporarily collected</strong>: IP address (used only for city-level geolocation display, not stored)</li>
+  <li><strong>Collected</strong>: IP address (used for city-level geolocation; stored for report/ban management purposes)</li>
   <li><strong>Temporarily stored</strong>: chat messages and images (auto-deleted after 7 days)</li>
+  <li><strong>Security stored</strong>: report records (including reporter and reported IP addresses) and ban records</li>
 </ul>
 <h2>2. Information Use</h2>
 <p>Collected information is used only for:</p>
@@ -246,8 +252,9 @@ export const privacy_en = `
 <ul>
   <li>Chat records are stored in the server's local database</li>
   <li>Image files are stored on the server's local filesystem</li>
-  <li>All data is <span class="highlight">automatically cleaned up after 7 days</span></li>
+  <li>All chat data is <span class="highlight">automatically cleaned up after 7 days</span></li>
   <li>We do not use third-party databases or cloud storage</li>
+  <li>IP geolocation uses third-party services (ip-api.com, ip.sb); these services do not access your chat content</li>
 </ul>
 <h2>4. Information Sharing</h2>
 <p>We will <span class="highlight">not</span> sell, rent, or share your information with third parties, except when:</p>
@@ -269,6 +276,7 @@ export const privacy_en = `
   <li>File upload type and size validation</li>
   <li>Upload rate limiting</li>
   <li>Message length limits</li>
+  <li>Report system (anonymous reporting, IP-based tracking to prevent abuse)</li>
 </ul>
 <h2>7. Minor Protection</h2>
 <p>This service is intended for adults <span class="highlight">18 years and older</span>. We do not knowingly collect personal information from minors. If we discover a minor using the service, their connection will be terminated.</p>
@@ -363,7 +371,9 @@ export const guide_en = `
 <h3>Rematch</h3>
 <p>After leaving a chat, click "Rematch" to immediately find a new chat partner.</p>
 <h3>Reconnection</h3>
-<p>If you accidentally refresh the page or lose connection, your chat room is preserved for <span class="highlight">3 minutes</span>. Return to the chat page within 3 minutes to automatically resume your conversation.</p>
+<p>If you accidentally refresh the page or lose connection, your chat room is preserved for <span class="highlight">3 minutes</span>. Return to the chat page within 3 minutes to automatically resume your conversation. Either side can trigger reconnection.</p>
+<h3>Report a User</h3>
+<p>After a chat ends, click the "Report" button and select a reason (Spam, Harassment, Inappropriate Content, or Other). The system saves the last 20 messages as evidence. A user is auto-banned after being reported by 3 different people.</p>
 <h2>Privacy & Security</h2>
 <ul>
   <li>No registration required, no personal data collected</li>
@@ -380,7 +390,7 @@ export const guide_en = `
 <h3>How long are chat records kept?</h3>
 <p>All chat records and images are <span class="highlight">automatically destroyed after 7 days</span> and are never permanently stored.</p>
 <h3>My partner sent inappropriate content</h3>
-<p>Click "Leave" to end the conversation. To report, email <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a>.</p>
+<p>After the chat ends, click the "Report" button to submit a report. If the same user is reported by multiple people, they will be automatically banned.</p>
 <p class="last-update">Version 1.0 · March 2026</p>
 `
 
