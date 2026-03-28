@@ -151,7 +151,7 @@ function loadSession() {
     const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
     const s = JSON.parse(raw)
-    if (Date.now() - (s.savedAt || 0) > 30000) {
+    if (Date.now() - (s.savedAt || 0) > 180000) {
       clearSession()
       return null
     }

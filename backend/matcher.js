@@ -244,7 +244,7 @@ class Matcher {
           partnerInfo.roomId = null;
           this.send(partnerWs, { type: 'partner_left' });
         }
-      }, 8000);
+      }, 180000);
 
       this.recentlyDisconnected.set(clientId, {
         partnerWs, roomId, nickname, gender, age, city, timer
