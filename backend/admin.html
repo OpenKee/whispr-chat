@@ -467,7 +467,7 @@
     let reports = [];
     let bans = [];
     let stats = {};
-    let analytics = { pageviews: 0, unique_visitors: 0, visitors_today: 0, topSources: [], topCities: [], dailyVisitors: [] };
+    let analytics = { pageviews: 0, unique_visitors: 0, visitors_today: 0, topSources: [], topCities: [], topPaths: [], devices: { mobile: 0, desktop: 0 }, returningVisitors: 0, searchTerms: [], dailyVisitors: [] };
 
     function startOfToday() {
       const d = new Date();
@@ -604,6 +604,10 @@
       const onlineNow = stats.online || 0;
       const topSources = analytics.topSources || [];
       const topCities = analytics.topCities || [];
+      const topPaths = analytics.topPaths || [];
+      const searchTerms = analytics.searchTerms || [];
+      const devices = analytics.devices || { mobile: 0, desktop: 0 };
+      const returningVisitors = analytics.returningVisitors || 0;
       const dailyVisitors = analytics.dailyVisitors || [];
       const maxVisitors = Math.max(...dailyVisitors.map(d => d.visitors || 0), 1);
       return '<div class="analytics-grid">' +
@@ -613,6 +617,11 @@
       '<div class="mini-grid">' +
         '<div class="mini-card"><div class="mini-label">今日用户</div><div class="mini-value">' + visitorsToday + '</div><div class="muted">按独立 IP 统计</div></div>' +
         '<div class="mini-card"><div class="mini-label">当前在线</div><div class="mini-value">' + onlineNow + '</div><div class="muted">实时在线连接</div></div>' +
+        '<div class="mini-card"><div class="mini-label">回访用户</div><div class="mini-value">' + returningVisitors + '</div><div class="muted">最近 7 天访问超过 1 次</div></div>' +
+      '</div>' +
+      '<div class="mini-grid">' +
+        '<div class="mini-card"><div class="mini-label">移动端</div><div class="mini-value">' + (devices.mobile || 0) + '</div><div class="muted">含 iPhone / Android / Mobile UA</div></div>' +
+        '<div class="mini-card"><div class="mini-label">桌面端</div><div class="mini-value">' + (devices.desktop || 0) + '</div><div class="muted">非移动 UA</div></div>' +
         '<div class="mini-card"><div class="mini-label">累计浏览</div><div class="mini-value">' + pageviews + '</div><div class="muted">已记录页面访问次数</div></div>' +
       '</div>' +
       '<div class="chart-card" style="margin-bottom:12px;"><div class="chart-head"><div><div class="chart-title">最近 7 天访问用户</div><div class="chart-note">每日独立访问用户趋势</div></div><div class="chart-note">7d uniques</div></div><div class="bars">' +
@@ -624,6 +633,14 @@
         '</div>' +
         '<div class="chart-card"><div class="chart-head"><div class="chart-title">地域</div><div class="chart-note">最近 7 天</div></div>' +
         (topCities.length ? topCities.map(item => '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);"><div style="font-size:14px;font-weight:600;">' + esc(item.city) + '</div><div class="muted">' + item.count + '</div></div>').join('') : '<div class="muted">暂无数据</div>') +
+        '</div>' +
+      '</div>' +
+      '<div class="analytics-grid">' +
+        '<div class="chart-card"><div class="chart-head"><div class="chart-title">入口页面</div><div class="chart-note">最近 7 天</div></div>' +
+        (topPaths.length ? topPaths.map(item => '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);"><div style="font-size:14px;font-weight:600;">' + esc(item.path || '/') + '</div><div class="muted">' + item.count + '</div></div>').join('') : '<div class="muted">暂无数据</div>') +
+        '</div>' +
+        '<div class="chart-card"><div class="chart-head"><div class="chart-title">搜索词</div><div class="chart-note">如果 referrer 带 query</div></div>' +
+        (searchTerms.length ? searchTerms.map(item => '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);"><div style="font-size:14px;font-weight:600;">' + esc(item.term) + '</div><div class="muted">' + item.count + '</div></div>').join('') : '<div class="muted">暂无可提取搜索词</div>') +
         '</div>' +
       '</div>';
     }

@@ -107,6 +107,37 @@ const getDailyVisitsStmt = db.prepare(`
   GROUP BY day
   ORDER BY day ASC
 `);
+const getTopPathsStmt = db.prepare(`
+  SELECT path, COUNT(*) as count
+  FROM visits
+  WHERE created_at >= ?
+  GROUP BY path
+  ORDER BY count DESC
+  LIMIT ?
+`);
+const getDeviceBreakdownStmt = db.prepare(`
+  SELECT
+    SUM(CASE WHEN user_agent LIKE '%Mobile%' OR user_agent LIKE '%Android%' OR user_agent LIKE '%iPhone%' THEN 1 ELSE 0 END) as mobile,
+    SUM(CASE WHEN user_agent NOT LIKE '%Mobile%' AND user_agent NOT LIKE '%Android%' AND user_agent NOT LIKE '%iPhone%' THEN 1 ELSE 0 END) as desktop
+  FROM visits
+  WHERE created_at >= ?
+`);
+const getReturningVisitorsStmt = db.prepare(`
+  SELECT COUNT(*) as count FROM (
+    SELECT ip
+    FROM visits
+    WHERE created_at >= ?
+    GROUP BY ip
+    HAVING COUNT(*) > 1
+  )
+`);
+const getSearchTermsStmt = db.prepare(`
+  SELECT referrer, COUNT(*) as count
+  FROM visits
+  WHERE created_at >= ? AND referrer != ''
+  ORDER BY count DESC
+  LIMIT 100
+`);
 
 function addVisit(ip, pathName, referrer, source, city, userAgent) {
   return insertVisitStmt.run(ip || '', pathName || '', referrer || '', source || 'direct', city || '', userAgent || '');
@@ -114,10 +145,23 @@ function addVisit(ip, pathName, referrer, source, city, userAgent) {
 
 function getAnalyticsSummary(days = 7) {
   const since = Math.floor(Date.now() / 1000) - days * 86400;
+  const rawReferrers = getSearchTermsStmt.all(since);
+  const searchTerms = new Map();
+  for (const item of rawReferrers) {
+    try {
+      const url = new URL(item.referrer);
+      const term = url.searchParams.get('wd') || url.searchParams.get('word') || url.searchParams.get('query') || url.searchParams.get('q') || url.searchParams.get('keyword');
+      if (term) searchTerms.set(term, (searchTerms.get(term) || 0) + item.count);
+    } catch {}
+  }
   return {
     ...getAnalyticsSummaryStmt.get(Math.floor(Date.now() / 1000) - 86400 + 1),
     topSources: getTopSourcesStmt.all(since, 8),
     topCities: getTopCitiesStmt.all(since, 10),
+    topPaths: getTopPathsStmt.all(since, 10),
+    devices: getDeviceBreakdownStmt.get(since),
+    returningVisitors: getReturningVisitorsStmt.get(since).count,
+    searchTerms: Array.from(searchTerms.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([term, count]) => ({ term, count })),
     dailyVisitors: getDailyVisitsStmt.all(since)
   };
 }
