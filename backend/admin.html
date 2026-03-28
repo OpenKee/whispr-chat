@@ -273,6 +273,12 @@
       gap: 12px;
       margin-bottom: 12px;
     }
+    .analytics-tight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
     .analytics-card {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -330,6 +336,43 @@
       border-radius: 18px;
       box-shadow: var(--shadow);
       padding: 16px;
+    }
+    .compact-list { display: grid; gap: 8px; }
+    .compact-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+    }
+    .compact-main { min-width: 0; }
+    .compact-name {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+    .compact-bar {
+      height: 6px;
+      border-radius: 999px;
+      background: #eef2f7;
+      overflow: hidden;
+    }
+    .compact-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #111827, #4b5563);
+      min-width: 6px;
+    }
+    .compact-value {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-soft);
+      white-space: nowrap;
     }
     .chart-head {
       display: flex;
@@ -433,7 +476,7 @@
     @media (max-width: 920px) {
       .topbar { flex-direction: column; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .analytics-grid, .mini-grid { grid-template-columns: 1fr; }
+      .analytics-grid, .mini-grid, .analytics-tight-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 760px) {
       .shell { padding: 16px 12px 100px; }
@@ -545,6 +588,22 @@
       return '<div class="stat"><div class="stat-value">' + value + '</div><div class="stat-label">' + label + '</div></div>';
     }
 
+    function compactList(items, nameKey, valueKey, emptyText) {
+      if (!items || !items.length) return '<div class="muted">' + emptyText + '</div>';
+      const max = Math.max(...items.map(item => Number(item[valueKey]) || 0), 1);
+      return '<div class="compact-list">' + items.map(item => {
+        const value = Number(item[valueKey]) || 0;
+        const width = Math.max(4, Math.round((value / max) * 100));
+        return '<div class="compact-row">' +
+          '<div class="compact-main">' +
+            '<div class="compact-name">' + esc(item[nameKey] || '-') + '</div>' +
+            '<div class="compact-bar"><div class="compact-fill" style="width:' + width + '%"></div></div>' +
+          '</div>' +
+          '<div class="compact-value">' + value + '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+    }
+
     function renderLogin() {
       return '<div class="login-wrap"><div class="login">' +
         '<div class="eyebrow">Whispr Moderator</div>' +
@@ -627,21 +686,11 @@
       '<div class="chart-card" style="margin-bottom:12px;"><div class="chart-head"><div><div class="chart-title">最近 7 天访问用户</div><div class="chart-note">每日独立访问用户趋势</div></div><div class="chart-note">7d uniques</div></div><div class="bars">' +
       dailyVisitors.map(item => '<div class="bar-col"><div class="bar-wrap"><div class="bar" style="height:' + Math.max(8, Math.round(((item.visitors || 0) / maxVisitors) * 100)) + '%"></div></div><div class="bar-label">' + esc((item.day || '').slice(5)) + '<br>' + (item.visitors || 0) + '</div></div>').join('') +
       '</div></div>' +
-      '<div class="analytics-grid">' +
-        '<div class="chart-card"><div class="chart-head"><div class="chart-title">来源</div><div class="chart-note">最近 7 天</div></div>' +
-        (topSources.length ? topSources.map(item => '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);"><div style="font-size:14px;font-weight:600;">' + esc(item.source) + '</div><div class="muted">' + item.count + '</div></div>').join('') : '<div class="muted">暂无数据</div>') +
-        '</div>' +
-        '<div class="chart-card"><div class="chart-head"><div class="chart-title">地域</div><div class="chart-note">最近 7 天</div></div>' +
-        (topCities.length ? topCities.map(item => '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);"><div style="font-size:14px;font-weight:600;">' + esc(item.city) + '</div><div class="muted">' + item.count + '</div></div>').join('') : '<div class="muted">暂无数据</div>') +
-        '</div>' +
-      '</div>' +
-      '<div class="analytics-grid">' +
-        '<div class="chart-card"><div class="chart-head"><div class="chart-title">入口页面</div><div class="chart-note">最近 7 天</div></div>' +
-        (topPaths.length ? topPaths.map(item => '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);"><div style="font-size:14px;font-weight:600;">' + esc(item.path || '/') + '</div><div class="muted">' + item.count + '</div></div>').join('') : '<div class="muted">暂无数据</div>') +
-        '</div>' +
-        '<div class="chart-card"><div class="chart-head"><div class="chart-title">搜索词</div><div class="chart-note">如果 referrer 带 query</div></div>' +
-        (searchTerms.length ? searchTerms.map(item => '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);"><div style="font-size:14px;font-weight:600;">' + esc(item.term) + '</div><div class="muted">' + item.count + '</div></div>').join('') : '<div class="muted">暂无可提取搜索词</div>') +
-        '</div>' +
+      '<div class="analytics-tight-grid">' +
+        '<div class="chart-card"><div class="chart-head"><div class="chart-title">来源</div><div class="chart-note">最近 7 天</div></div>' + compactList(topSources, 'source', 'count', '暂无数据') + '</div>' +
+        '<div class="chart-card"><div class="chart-head"><div class="chart-title">地域</div><div class="chart-note">最近 7 天</div></div>' + compactList(topCities, 'city', 'count', '暂无数据') + '</div>' +
+        '<div class="chart-card"><div class="chart-head"><div class="chart-title">入口页面</div><div class="chart-note">最近 7 天</div></div>' + compactList(topPaths, 'path', 'count', '暂无数据') + '</div>' +
+        '<div class="chart-card"><div class="chart-head"><div class="chart-title">搜索词</div><div class="chart-note">如果 referrer 带 query</div></div>' + compactList(searchTerms, 'term', 'count', '暂无可提取搜索词') + '</div>' +
       '</div>';
     }
 
