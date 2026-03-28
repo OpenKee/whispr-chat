@@ -1,14 +1,13 @@
-export const terms = `
+// Chinese versions
+export const terms_zh = `
 <h2>1. 服务说明</h2>
 <p>Whispr（以下简称"本平台"）是一个免费的匿名随机聊天服务。用户无需注册即可与随机匹配的陌生人进行实时文字和图片交流。</p>
-
 <h2>2. 使用条件</h2>
 <ul>
   <li>您必须年满 <span class="highlight">18 周岁</span> 方可使用本服务</li>
   <li>您应遵守所在地区的相关法律法规</li>
   <li>您不得利用本服务从事任何违法活动</li>
 </ul>
-
 <h2>3. 禁止行为</h2>
 <p>使用本服务时，禁止以下行为：</p>
 <ul>
@@ -19,7 +18,6 @@ export const terms = `
   <li>收集或存储其他用户的个人信息</li>
   <li>冒充他人身份</li>
 </ul>
-
 <h2>4. 免责声明</h2>
 <p>本平台按"现状"提供服务，不对以下事项做出保证：</p>
 <ul>
@@ -27,20 +25,16 @@ export const terms = `
   <li>聊天对象的身份真实性</li>
   <li>聊天内容的合法性或适当性</li>
 </ul>
-
 <h2>5. 账户与数据</h2>
 <p>本平台无需注册，不存储用户账户信息。聊天记录在 <span class="highlight">7 天</span> 后自动删除，图片文件同样在 7 天后自动清理。</p>
-
 <h2>6. 服务变更与终止</h2>
 <p>我们保留随时修改、暂停或终止服务的权利，恕不另行通知。</p>
-
 <h2>7. 条款修改</h2>
 <p>我们可能会不时更新本条款。修改后的条款将在本页面发布，继续使用本服务即表示您接受修改后的条款。</p>
-
 <p class="last-update">最后更新：2026 年 3 月 28 日</p>
 `
 
-export const privacy = `
+export const privacy_zh = `
 <h2>1. 信息收集</h2>
 <p>本平台致力于<span class="highlight">最小化数据收集</span>：</p>
 <ul>
@@ -48,7 +42,6 @@ export const privacy = `
   <li><strong>临时收集</strong>：IP 地址（仅用于城市定位展示，不存储）</li>
   <li><strong>临时存储</strong>：聊天消息和图片（7 天后自动删除）</li>
 </ul>
-
 <h2>2. 信息使用</h2>
 <p>收集的信息仅用于：</p>
 <ul>
@@ -56,7 +49,6 @@ export const privacy = `
   <li>显示对方所在城市（基于 IP 地理位置，精度为城市级）</li>
   <li>维护服务安全和防止滥用</li>
 </ul>
-
 <h2>3. 信息存储</h2>
 <ul>
   <li>聊天记录存储在服务器本地数据库中</li>
@@ -64,14 +56,12 @@ export const privacy = `
   <li>所有数据在 <span class="highlight">7 天后自动清理</span></li>
   <li>我们不使用第三方数据库或云存储服务</li>
 </ul>
-
 <h2>4. 信息共享</h2>
 <p>我们<span class="highlight">不会</span>将您的信息出售、出租或以其他方式提供给第三方，除非：</p>
 <ul>
   <li>法律法规要求</li>
   <li>保护本平台及用户的合法权益</li>
 </ul>
-
 <h2>5. Cookie 与本地存储</h2>
 <p>本平台仅使用浏览器 localStorage 存储以下信息：</p>
 <ul>
@@ -80,7 +70,6 @@ export const privacy = `
   <li>当前会话信息（用于断线重连，3 分钟后过期）</li>
 </ul>
 <p>这些数据仅存储在您的设备上，不会上传至我们的服务器。</p>
-
 <h2>6. 安全措施</h2>
 <ul>
   <li>全程 HTTPS 加密传输</li>
@@ -88,27 +77,22 @@ export const privacy = `
   <li>上传频率限制</li>
   <li>消息内容长度限制</li>
 </ul>
-
 <h2>7. 未成年人保护</h2>
 <p>本平台仅面向 <span class="highlight">18 周岁及以上</span> 的成年人。我们不会故意收集未成年人的个人信息，如发现未成年人使用本服务将终止其连接。</p>
-
 <h2>8. 联系我们</h2>
 <p>如对隐私政策有任何疑问，请发送邮件至 <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a>。</p>
-
 <p class="last-update">最后更新：2026 年 3 月 28 日</p>
 `
 
-export const disclaimer = `
+export const disclaimer_zh = `
 <h2>1. 服务性质</h2>
 <p>本平台是一个<span class="highlight">匿名随机聊天</span>工具，用户之间的交流完全由用户自行发起和控制。本平台不对任何用户生成的内容负责。</p>
-
 <h2>2. 内容责任</h2>
 <ul>
   <li>用户在本平台上发送的所有文字和图片内容，均由用户自行负责</li>
   <li>本平台不对聊天内容的真实性、准确性、完整性做任何保证</li>
   <li>用户应自行判断聊天内容的可信度，并对自己的行为负责</li>
 </ul>
-
 <h2>3. 人身与财产安全</h2>
 <ul>
   <li>请勿在聊天中透露个人真实信息（姓名、地址、电话、银行卡等）</li>
@@ -116,33 +100,26 @@ export const disclaimer = `
   <li>请勿向聊天对象转账或进行任何形式的金钱交易</li>
   <li>因用户自身行为导致的任何人身或财产损失，本平台不承担责任</li>
 </ul>
-
 <h2>4. 服务可用性</h2>
 <ul>
   <li>本平台不保证服务的持续可用性</li>
   <li>服务可能因维护、升级或其他原因暂停或终止</li>
   <li>本平台不对因服务中断导致的任何损失承担责任</li>
 </ul>
-
 <h2>5. 第三方链接</h2>
 <p>本平台不包含任何第三方链接或广告。如通过其他渠道获取本平台地址，请自行辨别真伪。</p>
-
 <h2>6. 法律适用</h2>
 <p>本免责声明的解释和适用以用户所在地法律为准则。如发生争议，双方应友好协商解决。</p>
-
 <h2>7. 举报渠道</h2>
 <p>如发现违法违规行为，请发送邮件至 <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a> 向我们举报。我们将在收到举报后尽快处理。</p>
-
 <p class="last-update">最后更新：2026 年 3 月 28 日</p>
 `
 
-export const about = `
+export const about_zh = `
 <h2>Whispr 是什么？</h2>
 <p>Whispr 是一个<span class="highlight">免费、匿名、随机匹配</span>的在线聊天平台。无需注册，打开即用，与随机匹配的陌生人开始一段短暂的对话。</p>
-
 <h2>为什么叫 Whispr？</h2>
 <p>Whispr 取自 "Whisper"（低语）。我们相信，有些话只有在匿名的环境下才能说出口。在这里，你可以卸下身份的包袱，做最真实的自己。</p>
-
 <h2>核心特点</h2>
 <ul>
   <li><strong>随机匹配</strong> — 每次都是一个全新的对话</li>
@@ -153,7 +130,6 @@ export const about = `
   <li><strong>全端适配</strong> — 手机、平板、电脑均可使用</li>
   <li><strong>隐私优先</strong> — 聊天记录 7 天自动销毁</li>
 </ul>
-
 <h2>技术架构</h2>
 <ul>
   <li><strong>前端</strong>：Vue 3 + Vue Router</li>
@@ -162,10 +138,8 @@ export const about = `
   <li><strong>服务器</strong>：Nginx + PM2</li>
   <li><strong>安全</strong>：HTTPS（Let's Encrypt）</li>
 </ul>
-
 <h2>开源精神</h2>
 <p>Whispr 是一个个人项目，由 <a href="https://github.com/OpenKee" target="_blank" class="highlight">OpenKee</a> 独立开发。我们相信简单、实用、尊重隐私的产品理念。</p>
-
 <h2>使用建议</h2>
 <ul>
   <li>请尊重每一位聊天对象</li>
@@ -173,42 +147,30 @@ export const about = `
   <li>不要分享个人敏感信息</li>
   <li>享受随机对话带来的新鲜感</li>
 </ul>
-
 <p class="last-update">版本 1.0 · 2026 年 3 月</p>
 `
 
-export const guide = `
+export const guide_zh = `
 <h2>快速开始</h2>
-
 <h3>第一步：选择你的信息</h3>
 <p>打开首页，选择你的性别和年龄段。这些信息会展示给匹配到的聊天对象，帮助对方了解你。点击「开始聊天」进入匹配。</p>
-
 <h3>第二步：等待匹配</h3>
 <p>系统会随机为你匹配一位在线用户。等待期间可以随时点击「取消」返回首页。</p>
-
 <h3>第三步：开始聊天</h3>
 <p>匹配成功后，你将看到对方的昵称、性别、年龄段和所在城市。直接在输入框输入消息，按回车或点击发送按钮即可。</p>
-
 <h2>功能说明</h2>
-
 <h3>发送文字</h3>
 <p>在底部输入框输入消息，最多 500 字。输入时对方会看到「正在输入...」提示。</p>
-
 <h3>发送图片</h3>
 <p>点击输入框左侧的图片按钮，选择一张图片。支持 JPG、PNG、GIF、WEBP 格式，最大 20MB。图片会自动压缩后发送，发送过程中会显示上传进度。</p>
-
 <h3>查看大图</h3>
 <p>点击聊天中的图片可以全屏预览，再次点击关闭。</p>
-
 <h3>离开聊天</h3>
 <p>点击右上角「离开」按钮结束当前对话。对方会收到「对方已离开了聊天」的提示。</p>
-
 <h3>重新匹配</h3>
 <p>离开聊天后，点击「重新匹配」可以立即寻找新的聊天对象。</p>
-
 <h3>断线重连</h3>
 <p>如果不小心刷新了页面或网络断开，系统会保留你的聊天房间 <span class="highlight">3 分钟</span>。在 3 分钟内回到聊天页面即可自动恢复对话。</p>
-
 <h2>隐私与安全</h2>
 <ul>
   <li>无需注册，不收集个人身份信息</li>
@@ -217,20 +179,225 @@ export const guide = `
   <li>对方只能看到你的昵称、性别、年龄段和所在城市</li>
   <li>全程 HTTPS 加密传输</li>
 </ul>
-
 <h2>常见问题</h2>
-
 <h3>匹配不到人怎么办？</h3>
 <p>可能当前在线人数较少，可以换个时间段再试。</p>
-
 <h3>为什么显示「连接超时」？</h3>
 <p>网络不稳定导致重连失败。点击「重新匹配」即可重新开始。</p>
-
 <h3>聊天记录会保存多久？</h3>
 <p>所有聊天记录和图片在 <span class="highlight">7 天后自动销毁</span>，不会永久保存。</p>
-
 <h3>对方发了不当内容怎么办？</h3>
 <p>直接点击「离开」结束对话。如需举报，请发送邮件至 <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a>。</p>
-
 <p class="last-update">版本 1.0 · 2026 年 3 月</p>
 `
+
+// English versions
+export const terms_en = `
+<h2>1. Service Description</h2>
+<p>Whispr ("the Platform") is a free anonymous random chat service. Users can chat in real-time with randomly matched strangers through text and images without registration.</p>
+<h2>2. Eligibility</h2>
+<ul>
+  <li>You must be at least <span class="highlight">18 years old</span> to use this service</li>
+  <li>You must comply with the laws of your jurisdiction</li>
+  <li>You may not use this service for any illegal activities</li>
+</ul>
+<h2>3. Prohibited Conduct</h2>
+<p>The following behaviors are prohibited:</p>
+<ul>
+  <li>Posting or distributing illegal content</li>
+  <li>Harassing, threatening, or intimidating other users</li>
+  <li>Sending spam or conducting malicious marketing</li>
+  <li>Attempting to attack, hack, or disrupt the service</li>
+  <li>Collecting or storing other users' personal information</li>
+  <li>Impersonating others</li>
+</ul>
+<h2>4. Disclaimer</h2>
+<p>The Platform is provided "as is" without guarantees regarding:</p>
+<ul>
+  <li>Continuity, timeliness, security, or accuracy of the service</li>
+  <li>Identity authenticity of chat partners</li>
+  <li>Legality or appropriateness of chat content</li>
+</ul>
+<h2>5. Accounts & Data</h2>
+<p>No registration is required and no user account information is stored. Chat messages are automatically deleted after <span class="highlight">7 days</span>, and image files are similarly cleaned up.</p>
+<h2>6. Service Changes</h2>
+<p>We reserve the right to modify, suspend, or terminate the service at any time without prior notice.</p>
+<h2>7. Terms Updates</h2>
+<p>We may update these terms from time to time. Updated terms will be posted on this page. Continued use of the service constitutes acceptance of the updated terms.</p>
+<p class="last-update">Last updated: March 28, 2026</p>
+`
+
+export const privacy_en = `
+<h2>1. Information Collection</h2>
+<p>We are committed to <span class="highlight">minimal data collection</span>:</p>
+<ul>
+  <li><strong>Not collected</strong>: name, email, phone, ID number, or other personal identifiers</li>
+  <li><strong>Temporarily collected</strong>: IP address (used only for city-level geolocation display, not stored)</li>
+  <li><strong>Temporarily stored</strong>: chat messages and images (auto-deleted after 7 days)</li>
+</ul>
+<h2>2. Information Use</h2>
+<p>Collected information is used only for:</p>
+<ul>
+  <li>Providing chat matching services</li>
+  <li>Displaying partner's city (based on IP geolocation, city-level precision)</li>
+  <li>Maintaining service security and preventing abuse</li>
+</ul>
+<h2>3. Information Storage</h2>
+<ul>
+  <li>Chat records are stored in the server's local database</li>
+  <li>Image files are stored on the server's local filesystem</li>
+  <li>All data is <span class="highlight">automatically cleaned up after 7 days</span></li>
+  <li>We do not use third-party databases or cloud storage</li>
+</ul>
+<h2>4. Information Sharing</h2>
+<p>We will <span class="highlight">not</span> sell, rent, or share your information with third parties, except when:</p>
+<ul>
+  <li>Required by law</li>
+  <li>Necessary to protect the rights of the Platform and its users</li>
+</ul>
+<h2>5. Cookies & Local Storage</h2>
+<p>We only use browser localStorage to store:</p>
+<ul>
+  <li>Gender and age settings (for matching)</li>
+  <li>Client ID (for reconnection)</li>
+  <li>Current session info (for reconnection, expires after 3 minutes)</li>
+</ul>
+<p>This data is stored only on your device and is not uploaded to our servers.</p>
+<h2>6. Security Measures</h2>
+<ul>
+  <li>Full HTTPS encryption</li>
+  <li>File upload type and size validation</li>
+  <li>Upload rate limiting</li>
+  <li>Message length limits</li>
+</ul>
+<h2>7. Minor Protection</h2>
+<p>This service is intended for adults <span class="highlight">18 years and older</span>. We do not knowingly collect personal information from minors. If we discover a minor using the service, their connection will be terminated.</p>
+<h2>8. Contact Us</h2>
+<p>If you have any questions about this privacy policy, please email <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a>.</p>
+<p class="last-update">Last updated: March 28, 2026</p>
+`
+
+export const disclaimer_en = `
+<h2>1. Nature of Service</h2>
+<p>This platform is an <span class="highlight">anonymous random chat</span> tool. All communication between users is initiated and controlled solely by users. The Platform is not responsible for any user-generated content.</p>
+<h2>2. Content Responsibility</h2>
+<ul>
+  <li>All text and images sent on this platform are the sole responsibility of the sender</li>
+  <li>We make no guarantees about the truthfulness, accuracy, or completeness of chat content</li>
+  <li>Users should independently assess the credibility of chat content and are responsible for their own actions</li>
+</ul>
+<h2>3. Personal & Financial Safety</h2>
+<ul>
+  <li>Do not share personal information in chats (name, address, phone, bank details, etc.)</li>
+  <li>Do not meet chat partners in person; if you do, take appropriate safety precautions</li>
+  <li>Do not transfer money or engage in financial transactions with chat partners</li>
+  <li>We are not liable for any personal or financial losses resulting from users' own actions</li>
+</ul>
+<h2>4. Service Availability</h2>
+<ul>
+  <li>We do not guarantee continuous service availability</li>
+  <li>The service may be suspended or terminated for maintenance, upgrades, or other reasons</li>
+  <li>We are not liable for losses caused by service interruptions</li>
+</ul>
+<h2>5. Third-Party Links</h2>
+<p>This platform does not contain third-party links or advertisements. If you access this platform through other channels, please verify its authenticity.</p>
+<h2>6. Governing Law</h2>
+<p>This disclaimer shall be governed by and construed in accordance with the laws of your jurisdiction. Any disputes shall be resolved through friendly negotiation.</p>
+<h2>7. Reporting</h2>
+<p>To report illegal or inappropriate behavior, please email <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a>. We will handle reports promptly.</p>
+<p class="last-update">Last updated: March 28, 2026</p>
+`
+
+export const about_en = `
+<h2>What is Whispr?</h2>
+<p>Whispr is a <span class="highlight">free, anonymous, random-matching</span> online chat platform. No registration required — just open and start a conversation with a randomly matched stranger.</p>
+<h2>Why "Whispr"?</h2>
+<p>Whispr comes from "Whisper." We believe some things can only be said in an anonymous setting. Here, you can shed the weight of your identity and be your truest self.</p>
+<h2>Key Features</h2>
+<ul>
+  <li><strong>Random Matching</strong> — Every conversation is a fresh start</li>
+  <li><strong>Fully Anonymous</strong> — No registration, no personal data collected</li>
+  <li><strong>Real-time Chat</strong> — WebSocket-powered, instant message delivery</li>
+  <li><strong>Image Sharing</strong> — Send images with automatic compression</li>
+  <li><strong>Dark Theme</strong> — Easy on the eyes, perfect for nighttime use</li>
+  <li><strong>Cross-platform</strong> — Works on phones, tablets, and computers</li>
+  <li><strong>Privacy First</strong> — Chat records auto-destroyed after 7 days</li>
+</ul>
+<h2>Tech Stack</h2>
+<ul>
+  <li><strong>Frontend</strong>: Vue 3 + Vue Router</li>
+  <li><strong>Backend</strong>: Fastify + WebSocket</li>
+  <li><strong>Database</strong>: SQLite</li>
+  <li><strong>Server</strong>: Nginx + PM2</li>
+  <li><strong>Security</strong>: HTTPS (Let's Encrypt)</li>
+</ul>
+<h2>Open Source Spirit</h2>
+<p>Whispr is a personal project developed by <a href="https://github.com/OpenKee" target="_blank" class="highlight">OpenKee</a>. We believe in simple, practical, privacy-respecting products.</p>
+<h2>Tips</h2>
+<ul>
+  <li>Respect every chat partner</li>
+  <li>Leave and report if you encounter inappropriate content</li>
+  <li>Don't share sensitive personal information</li>
+  <li>Enjoy the freshness of random conversations</li>
+</ul>
+<p class="last-update">Version 1.0 · March 2026</p>
+`
+
+export const guide_en = `
+<h2>Quick Start</h2>
+<h3>Step 1: Set Up Your Profile</h3>
+<p>Open the homepage and select your gender and age range. This information will be shown to your chat partner. Click "Start Chat" to begin matching.</p>
+<h3>Step 2: Wait for a Match</h3>
+<p>The system will randomly match you with an online user. You can click "Cancel" at any time to return to the homepage.</p>
+<h3>Step 3: Start Chatting</h3>
+<p>Once matched, you'll see your partner's nickname, gender, age range, and city. Type your message in the input box and press Enter or click the send button.</p>
+<h2>Features</h2>
+<h3>Send Text</h3>
+<p>Type messages in the bottom input box, up to 500 characters. Your partner will see a "typing..." indicator while you type.</p>
+<h3>Send Images</h3>
+<p>Click the image button on the left of the input box. Supports JPG, PNG, GIF, and WEBP formats, up to 20MB. Images are automatically compressed before sending, with upload progress shown.</p>
+<h3>View Full Image</h3>
+<p>Click on any image in the chat to preview it fullscreen. Click again to close.</p>
+<h3>Leave Chat</h3>
+<p>Click the "Leave" button in the top right to end the conversation. Your partner will be notified that you left.</p>
+<h3>Rematch</h3>
+<p>After leaving a chat, click "Rematch" to immediately find a new chat partner.</p>
+<h3>Reconnection</h3>
+<p>If you accidentally refresh the page or lose connection, your chat room is preserved for <span class="highlight">3 minutes</span>. Return to the chat page within 3 minutes to automatically resume your conversation.</p>
+<h2>Privacy & Security</h2>
+<ul>
+  <li>No registration required, no personal data collected</li>
+  <li>Chat records auto-deleted after 7 days</li>
+  <li>Image files auto-cleaned after 7 days</li>
+  <li>Your partner can only see your nickname, gender, age range, and city</li>
+  <li>Full HTTPS encryption</li>
+</ul>
+<h2>FAQ</h2>
+<h3>Can't find a match?</h3>
+<p>There may be few users online. Try again at a different time.</p>
+<h3>Why do I see "Connection timed out"?</h3>
+<p>Network instability caused the reconnection to fail. Click "Rematch" to try again.</p>
+<h3>How long are chat records kept?</h3>
+<p>All chat records and images are <span class="highlight">automatically destroyed after 7 days</span> and are never permanently stored.</p>
+<h3>My partner sent inappropriate content</h3>
+<p>Click "Leave" to end the conversation. To report, email <a href="mailto:jiuhe1129@gmail.com" style="color:var(--accent)">jiuhe1129@gmail.com</a>.</p>
+<p class="last-update">Version 1.0 · March 2026</p>
+`
+
+// Map for easy access
+export const pages = {
+  zh: {
+    terms: terms_zh,
+    privacy: privacy_zh,
+    disclaimer: disclaimer_zh,
+    about: about_zh,
+    guide: guide_zh,
+  },
+  en: {
+    terms: terms_en,
+    privacy: privacy_en,
+    disclaimer: disclaimer_en,
+    about: about_en,
+    guide: guide_en,
+  }
+}

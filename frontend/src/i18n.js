@@ -63,6 +63,7 @@ const t = {
     about: '关于我们',
     // Language
     lang: 'EN',
+    back: '返回',
   },
   en: {
     // Home
@@ -118,6 +119,7 @@ const t = {
     about: 'About',
     // Language
     lang: '中文',
+    back: 'Back',
   }
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <div class="page-header">
-      <router-link to="/" class="back-btn">← 返回</router-link>
+      <router-link to="/" class="back-btn">← {{ $t('back') }}</router-link>
       <h1>{{ title }}</h1>
     </div>
     <div class="page-body" v-html="content"></div>
@@ -9,11 +9,25 @@
 </template>
 
 <script>
+import { computed } from 'vue'
+import { useI18n } from '../i18n'
+import { pages } from '../pages'
+
+const titles = {
+  zh: { terms: '服务条款', privacy: '隐私政策', disclaimer: '免责声明', about: '关于我们', guide: '使用说明' },
+  en: { terms: 'Terms of Service', privacy: 'Privacy Policy', disclaimer: 'Disclaimer', about: 'About Us', guide: 'User Guide' }
+}
+
 export default {
   name: 'StaticPage',
   props: {
-    title: String,
-    content: String
+    pageKey: String
+  },
+  setup(props) {
+    const { lang, $t } = useI18n()
+    const title = computed(() => (titles[lang.value] && titles[lang.value][props.pageKey]) || props.pageKey)
+    const content = computed(() => (pages[lang.value] && pages[lang.value][props.pageKey]) || '')
+    return { title, content, $t }
   }
 }
 </script>
