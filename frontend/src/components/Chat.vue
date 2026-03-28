@@ -402,7 +402,22 @@ export default {
 
     function rematch() {
       if (ws) { ws.close(); ws = null }
-      startChat()
+      state.value = 'searching'
+      searchingSeconds.value = 0
+      messages.value = []
+      clearSession()
+      searchTimer = setInterval(() => {
+        searchingSeconds.value++
+        if (searchingSeconds.value > 120) {
+          stopSearching()
+          clearSession()
+          router.push('/')
+        }
+      }, 1000)
+      connect()
+      if (ws) {
+        ws.onopen = () => { sendJoin() }
+      }
     }
 
     function autoReconnect() {
