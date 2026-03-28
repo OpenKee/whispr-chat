@@ -240,10 +240,10 @@ async function start() {
     addReport(roomId, reporter, partner, reason, snapshot);
     console.log(`[report] room=${roomId} reason=${reason}`);
 
-    // Auto-ban if 3+ reports in 24 hours
+    // Auto-ban 24h if 3+ reports in 24 hours
     if (partner && getReportCount(partner) >= 3) {
-      banIp(ip, `Auto-ban: 3 reports in 24h (latest: ${reason})`);
-      console.log(`[auto-ban] ${partner} (${ip})`);
+      banIp(ip, `Auto-ban: 3 reports in 24h (latest: ${reason})`, 86400);
+      console.log(`[auto-ban-24h] ${partner} (${ip})`);
     }
 
     return { ok: true };
@@ -263,7 +263,7 @@ async function start() {
   fastify.post('/api/admin/ban', async (req, reply) => {
     const { ip: targetIp, reason } = req.body || {};
     if (!targetIp) return reply.code(400).send({ error: 'missing ip' });
-    banIp(targetIp, reason || 'Manual ban');
+    banIp(targetIp, reason || 'Manual ban', null);
     // Disconnect if online
     for (const [ws2, client] of matcher.clients) {
       const clientIp = ws2._socket?.remoteAddress || '';

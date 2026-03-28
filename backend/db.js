@@ -103,17 +103,25 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS banned_ips (
     ip TEXT PRIMARY KEY,
     reason TEXT,
+    expires_at INTEGER,
     created_at INTEGER DEFAULT (strftime('%s','now'))
   )
 `);
 
-const banIpStmt = db.prepare('INSERT OR REPLACE INTO banned_ips (ip, reason) VALUES (?, ?)');
-const isBannedStmt = db.prepare('SELECT 1 FROM banned_ips WHERE ip = ?');
+const banIpStmt = db.prepare('INSERT OR REPLACE INTO banned_ips (ip, reason, expires_at) VALUES (?, ?, ?)');
+const isBannedStmt = db.prepare("SELECT 1 FROM banned_ips WHERE ip = ? AND (expires_at IS NULL OR expires_at > strftime('%s','now'))");
 const unbanIpStmt = db.prepare('DELETE FROM banned_ips WHERE ip = ?');
-const getBannedStmt = db.prepare('SELECT * FROM banned_ips ORDER BY created_at DESC');
+const getBannedStmt = db.prepare("SELECT * FROM banned_ips WHERE expires_at IS NULL OR expires_at > strftime('%s','now') ORDER BY created_at DESC");
+const cleanExpiredStmt = db.prepare("DELETE FROM banned_ips WHERE expires_at IS NOT NULL AND expires_at <= strftime('%s','now')");
 
-function banIp(ip, reason) { banIpStmt.run(ip, reason); }
-function isIpBanned(ip) { return !!isBannedStmt.get(ip); }
+function banIp(ip, reason, durationSeconds) {
+  const expiresAt = durationSeconds ? Math.floor(Date.now() / 1000) + durationSeconds : null;
+  banIpStmt.run(ip, reason, expiresAt);
+}
+function isIpBanned(ip) {
+  cleanExpiredStmt.run();
+  return !!isBannedStmt.get(ip);
+}
 function unbanIp(ip) { unbanIpStmt.run(ip); }
 function getBannedIps() { return getBannedStmt.all(); }
 
