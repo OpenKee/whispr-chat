@@ -60,4 +60,65 @@ function cleanup() {
   return result.changes;
 }
 
-module.exports = { db, saveMessage, getMessages, cleanup };
+// ===== Reports =====
+db.exec(`
+  CREATE TABLE IF NOT EXISTS reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_id TEXT NOT NULL,
+    reporter_nickname TEXT,
+    partner_nickname TEXT,
+    reason TEXT,
+    messages_snapshot TEXT,
+    created_at INTEGER DEFAULT (strftime('%s','now'))
+  )
+`);
+
+const insertReport = db.prepare(
+  'INSERT INTO reports (room_id, reporter_nickname, partner_nickname, reason, messages_snapshot) VALUES (?, ?, ?, ?, ?)'
+);
+
+const getReportsStmt = db.prepare(
+  'SELECT * FROM reports ORDER BY created_at DESC LIMIT ?'
+);
+
+const getReportCountStmt = db.prepare(
+  "SELECT COUNT(*) as count FROM reports WHERE partner_nickname = ? AND created_at > ?"
+);
+
+function addReport(roomId, reporter, partner, reason, snapshot) {
+  return insertReport.run(roomId, reporter, partner, reason, snapshot);
+}
+
+function getReports(limit = 50) {
+  return getReportsStmt.all(limit);
+}
+
+function getReportCount(nickname, hours = 24) {
+  const since = Math.floor(Date.now() / 1000) - hours * 3600;
+  return getReportCountStmt.get(nickname, since).count;
+}
+
+// ===== Banned IPs =====
+db.exec(`
+  CREATE TABLE IF NOT EXISTS banned_ips (
+    ip TEXT PRIMARY KEY,
+    reason TEXT,
+    created_at INTEGER DEFAULT (strftime('%s','now'))
+  )
+`);
+
+const banIpStmt = db.prepare('INSERT OR REPLACE INTO banned_ips (ip, reason) VALUES (?, ?)');
+const isBannedStmt = db.prepare('SELECT 1 FROM banned_ips WHERE ip = ?');
+const unbanIpStmt = db.prepare('DELETE FROM banned_ips WHERE ip = ?');
+const getBannedStmt = db.prepare('SELECT * FROM banned_ips ORDER BY created_at DESC');
+
+function banIp(ip, reason) { banIpStmt.run(ip, reason); }
+function isIpBanned(ip) { return !!isBannedStmt.get(ip); }
+function unbanIp(ip) { unbanIpStmt.run(ip); }
+function getBannedIps() { return getBannedStmt.all(); }
+
+module.exports = {
+  db, saveMessage, getMessages, cleanup,
+  addReport, getReports, getReportCount,
+  banIp, isIpBanned, unbanIp, getBannedIps
+};

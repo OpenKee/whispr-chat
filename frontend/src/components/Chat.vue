@@ -309,6 +309,11 @@ export default {
 
     function handleMessage(data) {
       switch (data.type) {
+        case 'banned':
+          state.value = 'ended'
+          addSystemMessage(lang === 'zh' ? '你的账号已被封禁' : 'Your account has been banned')
+          break
+
         case 'matched':
           nickname.value = data.nickname
           partnerNickname.value = data.partnerNickname

@@ -64,6 +64,8 @@ const t = {
     reportThanks: '已收到举报，感谢反馈',
     reportCancel: '取消',
     reportSubmit: '提交举报',
+    banned: '你的账号已被封禁',
+    bannedEn: 'Your account has been banned',
     // Footer
     guide: '使用说明',
     contactUs: '联系我们',

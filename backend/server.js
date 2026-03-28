@@ -4,7 +4,7 @@ const fs = require('fs');
 const sharp = require('sharp');
 const { customAlphabet } = require('nanoid');
 const { Matcher } = require('./matcher');
-const { saveMessage, getMessages, cleanup } = require('./db');
+const { db, saveMessage, getMessages, cleanup, addReport, getReports, getReportCount, banIp, isIpBanned, unbanIp, getBannedIps } = require('./db');
 const { getCity } = require('./geoip');
 
 const PORT = process.env.PORT || 3847;
@@ -125,6 +125,12 @@ async function start() {
 
           switch (data.type) {
             case 'join': {
+              // Check IP ban
+              if (isIpBanned(ip)) {
+                ws.send(JSON.stringify({ type: 'banned' }));
+                ws.close();
+                return;
+              }
               const city = await getCity(ip);
               console.log(`[join] ip=${ip} city=${city}`);
               const result = matcher.addClient(ws, data.clientId, data.gender, data.age, city);
@@ -212,8 +218,68 @@ async function start() {
   fastify.post('/api/report', async (req, reply) => {
     const { roomId, reason } = req.body || {};
     if (!roomId) return reply.code(400).send({ error: 'missing roomId' });
-    const logLine = `[REPORT] ${new Date().toISOString()} room=${roomId} reason=${reason || 'none'}\n`;
-    fs.appendFileSync(path.join(__dirname, '..', 'data', 'reports.log'), logLine);
+
+    // Get messages snapshot
+    const msgs = getMessages(roomId);
+    const snapshot = msgs.slice(-20).map(m => `${m.nickname}: ${m.content || '[image]'}`).join('\n');
+
+    // Find reporter and partner from matcher
+    let reporter = '', partner = '';
+    for (const [, client] of matcher.clients) {
+      if (client.roomId === roomId) {
+        partner = client.nickname;
+      }
+    }
+    // The reporter is whoever is NOT in the room anymore (they left)
+    for (const [ws2, client] of matcher.clients) {
+      if (client.roomId === roomId) {
+        partner = client.nickname;
+      }
+    }
+
+    addReport(roomId, reporter, partner, reason, snapshot);
+    console.log(`[report] room=${roomId} reason=${reason}`);
+
+    // Auto-ban if 3+ reports in 24 hours
+    if (partner && getReportCount(partner) >= 3) {
+      banIp(ip, `Auto-ban: 3 reports in 24h (latest: ${reason})`);
+      console.log(`[auto-ban] ${partner} (${ip})`);
+    }
+
+    return { ok: true };
+  });
+
+  // API: admin - list reports (simple token auth)
+  fastify.get('/api/admin/reports', async (req) => {
+    return getReports(100);
+  });
+
+  // API: admin - list bans
+  fastify.get('/api/admin/bans', async (req) => {
+    return getBannedIps();
+  });
+
+  // API: admin - ban IP
+  fastify.post('/api/admin/ban', async (req, reply) => {
+    const { ip: targetIp, reason } = req.body || {};
+    if (!targetIp) return reply.code(400).send({ error: 'missing ip' });
+    banIp(targetIp, reason || 'Manual ban');
+    // Disconnect if online
+    for (const [ws2, client] of matcher.clients) {
+      const clientIp = ws2._socket?.remoteAddress || '';
+      if (clientIp === targetIp) {
+        ws2.send(JSON.stringify({ type: 'banned' }));
+        ws2.close();
+      }
+    }
+    return { ok: true };
+  });
+
+  // API: admin - unban IP
+  fastify.post('/api/admin/unban', async (req, reply) => {
+    const { ip: targetIp } = req.body || {};
+    if (!targetIp) return reply.code(400).send({ error: 'missing ip' });
+    unbanIp(targetIp);
     return { ok: true };
   });
 
