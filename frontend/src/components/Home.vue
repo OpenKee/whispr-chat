@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="home-content">
-      <div class="logo"><MessageCircle :size="48" /></div>
+      <div class="logo">🤫</div><!-- 保留！品牌标志，不许换成图标 -->
       <h1 class="title">Whispr</h1>
       <p class="subtitle">随机匹配，匿名畅聊</p>
 
@@ -165,15 +165,13 @@ export default {
 }
 
 .logo {
+  font-size: 72px;
   margin-bottom: 16px;
   line-height: 1;
   animation: logoFloat 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   cursor: default;
   user-select: none;
   will-change: transform;
-  color: var(--accent);
-  display: flex;
-  justify-content: center;
 }
 
 @keyframes logoFloat {
