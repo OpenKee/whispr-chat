@@ -193,6 +193,7 @@ export default {
     let isTyping = false
     let chatStartTime = null
     let durationTimer = null
+    let uploadXhr = null
 
     let clientId = localStorage.getItem('whispr_client_id')
     if (!clientId) {
@@ -272,6 +273,7 @@ export default {
 
     function endChat(reason) {
       stopDurationTimer()
+      if (uploadXhr) { uploadXhr.abort(); uploadXhr = null }
       clearSession()
       state.value = 'ended'
       if (reason === 'partner_left') {
@@ -412,7 +414,8 @@ export default {
     }
 
     function rematch() {
-      if (ws) { ws.close(); ws = null }
+      // Prevent old onclose from interfering
+      if (ws) { ws.onclose = null; ws.onmessage = null; ws.onopen = null; ws.close(); ws = null }
       state.value = 'searching'
       searchingSeconds.value = 0
       messages.value = []
@@ -435,7 +438,9 @@ export default {
       connect()
       // Wait for WebSocket to open before sending join
       if (ws) {
-        ws.onopen = () => { sendJoin() }
+        ws.onopen = () => {
+          if (state.value === 'reconnecting') { sendJoin() }
+        }
       }
       setTimeout(() => {
         if (state.value === 'reconnecting') {
@@ -447,7 +452,8 @@ export default {
     }
 
     function cancelSearch() {
-      if (ws) { ws.send(JSON.stringify({ type: 'leave' })); ws.close(); ws = null }
+      if (ws?.readyState === 1) { ws.send(JSON.stringify({ type: 'leave' })) }
+      if (ws) { ws.close(); ws = null }
       stopSearching(); clearSession(); router.push('/')
     }
 
@@ -509,6 +515,7 @@ export default {
     }
 
     function cancelImage() {
+      if (uploadXhr) { uploadXhr.abort(); uploadXhr = null }
       imageFile.value = null
       imagePreview.value = ''
       imageSizeText.value = ''
@@ -536,26 +543,26 @@ export default {
         formData.append('file', file)
 
         const data = await new Promise((resolve, reject) => {
-          const xhr = new XMLHttpRequest()
-          xhr.open('POST', '/api/upload')
-          xhr.upload.onprogress = (e) => {
+          uploadXhr = new XMLHttpRequest()
+          uploadXhr.open('POST', '/api/upload')
+          uploadXhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
               const pct = Math.round((e.loaded / e.total) * 100)
               uploadProgress.value = pct + '%'
             }
           }
-          xhr.onload = () => {
+          uploadXhr.onload = () => {
             try {
-              const body = JSON.parse(xhr.responseText)
-              if (xhr.status === 200) {
+              const body = JSON.parse(uploadXhr.responseText)
+              if (uploadXhr.status === 200) {
                 resolve(body)
               } else {
                 reject(new Error(body.error || '上传失败'))
               }
             } catch { reject(new Error('上传失败')) }
           }
-          xhr.onerror = () => reject(new Error('网络错误'))
-          xhr.send(formData)
+          uploadXhr.onerror = () => reject(new Error('网络错误'))
+          uploadXhr.send(formData)
         })
 
         if (data.url) {
@@ -585,7 +592,7 @@ export default {
 
     function leaveChat() {
       if (!confirm('确定离开聊天吗？')) return
-      if (ws) { ws.send(JSON.stringify({ type: 'leave' })) }
+      if (ws?.readyState === 1) { ws.send(JSON.stringify({ type: 'leave' })) }
       endChat('self_left')
     }
 
