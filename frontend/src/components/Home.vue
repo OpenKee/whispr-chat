@@ -63,10 +63,8 @@
         <router-link to="/guide">使用说明</router-link>
         <span class="sep">·</span>
         <a href="mailto:jiuhe1129@gmail.com">联系我们</a>
-        <span class="sep">·</span>
-        <button class="more-btn" @click="showMore = !showMore">更多 {{ showMore ? '▴' : '▾' }}</button>
       </div>
-      <div class="footer-more" v-if="showMore">
+      <div class="footer-more">
         <router-link to="/terms">服务条款</router-link>
         <router-link to="/privacy">隐私政策</router-link>
         <router-link to="/disclaimer">免责声明</router-link>
@@ -89,7 +87,6 @@ export default {
     const age = ref('')
     const saved = ref(false)
     const profile = ref({})
-    const showMore = ref(false)
 
     const genders = [
       { value: 'male', label: '男' },
@@ -139,7 +136,7 @@ export default {
     })
 
     return {
-      onlineCount, gender, age, saved, profile, showMore,
+      onlineCount, gender, age, saved, profile,
       genders, ages,
       saveAndGo
     }
@@ -360,19 +357,6 @@ export default {
 
 .footer-links a:hover { color: var(--text-secondary); }
 .footer-links .sep { color: var(--text-muted); opacity: 0.4; }
-
-.more-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 0;
-  font-family: inherit;
-  transition: color 0.2s;
-}
-
-.more-btn:hover { color: var(--text-secondary); }
 
 .footer-more {
   display: flex;
