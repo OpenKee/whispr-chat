@@ -108,6 +108,9 @@ db.exec(`
   )
 `);
 
+// Migration: add expires_at if missing
+try { db.exec("ALTER TABLE banned_ips ADD COLUMN expires_at INTEGER"); } catch {}
+
 const banIpStmt = db.prepare('INSERT OR REPLACE INTO banned_ips (ip, reason, expires_at) VALUES (?, ?, ?)');
 const isBannedStmt = db.prepare("SELECT 1 FROM banned_ips WHERE ip = ? AND (expires_at IS NULL OR expires_at > strftime('%s','now'))");
 const unbanIpStmt = db.prepare('DELETE FROM banned_ips WHERE ip = ?');
