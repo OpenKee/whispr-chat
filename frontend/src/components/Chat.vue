@@ -482,7 +482,7 @@ export default {
         return
       }
       const content = inputText.value.trim()
-      if (!content || state.value !== 'chatting' || !ws) return
+      if (!content || state.value !== 'chatting' || !ws || ws.readyState !== 1) return
       ws.send(JSON.stringify({ type: 'message', content }))
       messages.value.push({ content, nickname: nickname.value, timestamp: Date.now(), self: true })
       if (messages.value.length > 500) messages.value = messages.value.slice(-400)
