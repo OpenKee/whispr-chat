@@ -8,6 +8,7 @@ const { db, saveMessage, getMessages, cleanup, addReport, getReports, getReportC
 const { getCity } = require('./geoip');
 
 const PORT = process.env.PORT || 3847;
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'whispr-admin-' + require('crypto').randomBytes(16).toString('hex');
 const matcher = new Matcher();
 const generateImageId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 16);
 const IMAGES_DIR = path.join(__dirname, '..', 'data', 'images');
@@ -214,6 +215,17 @@ async function start() {
     waiting: matcher.waitingCount
   }));
 
+  // Admin auth check
+  function checkAdmin(req) {
+    const token = req.headers.authorization?.replace('Bearer ', '') || '';
+    return token === ADMIN_TOKEN;
+  }
+
+  // Admin page
+  fastify.get('/admin', async (req, reply) => {
+    return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf-8'));
+  });
+
   // API: report
   fastify.post('/api/report', async (req, reply) => {
     const { roomId, reason } = req.body || {};
@@ -252,18 +264,21 @@ async function start() {
     return { ok: true };
   });
 
-  // API: admin - list reports (simple token auth)
-  fastify.get('/api/admin/reports', async (req) => {
+  // API: admin - list reports
+  fastify.get('/api/admin/reports', async (req, reply) => {
+    if (!checkAdmin(req)) return reply.code(401).send({ error: 'unauthorized' });
     return getReports(100);
   });
 
   // API: admin - list bans
-  fastify.get('/api/admin/bans', async (req) => {
+  fastify.get('/api/admin/bans', async (req, reply) => {
+    if (!checkAdmin(req)) return reply.code(401).send({ error: 'unauthorized' });
     return getBannedIps();
   });
 
   // API: admin - ban IP
   fastify.post('/api/admin/ban', async (req, reply) => {
+    if (!checkAdmin(req)) return reply.code(401).send({ error: 'unauthorized' });
     const { ip: targetIp, reason } = req.body || {};
     if (!targetIp) return reply.code(400).send({ error: 'missing ip' });
     banIp(targetIp, reason || 'Manual ban', null);
@@ -280,6 +295,7 @@ async function start() {
 
   // API: admin - unban IP
   fastify.post('/api/admin/unban', async (req, reply) => {
+    if (!checkAdmin(req)) return reply.code(401).send({ error: 'unauthorized' });
     const { ip: targetIp } = req.body || {};
     if (!targetIp) return reply.code(400).send({ error: 'missing ip' });
     unbanIp(targetIp);
@@ -298,7 +314,9 @@ async function start() {
   // Start server
   await fastify.listen({ port: PORT, host: '0.0.0.0' });
   console.log(`\n🦞 Whispr Chat running at http://0.0.0.0:${PORT}`);
-  console.log(`   WebSocket: ws://0.0.0.0:${PORT}/ws\n`);
+  console.log(`   WebSocket: ws://0.0.0.0:${PORT}/ws`);
+  console.log(`   Admin: http://0.0.0.0:${PORT}/admin`);
+  console.log(`   Admin Token: ${ADMIN_TOKEN}\n`);
 
   // Cleanup old messages and images every hour
   cleanup();
